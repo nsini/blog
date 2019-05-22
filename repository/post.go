@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"time"
 )
 
 type Post struct {
+	gorm.Model
 	Id          int64     `json:"id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
@@ -24,20 +27,17 @@ type PostRepository interface {
 }
 
 type post struct {
+	db *gorm.DB
 }
 
-func NewPostRepository() PostRepository {
-
-	return &post{}
+func NewPostRepository(db *gorm.DB) PostRepository {
+	return &post{db: db}
 }
 
 func (c *post) Find(id int64) (res *Post, err error) {
-
-	return &Post{
-		Id:          1,
-		Title:       "hello",
-		Description: "world",
-		Content:     "none",
-		CreatedAt:   time.Now(),
-	}, nil
+	err = c.db.First(&res, id).Error
+	if err != nil {
+		return
+	}
+	return
 }

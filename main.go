@@ -34,8 +34,14 @@ func main() {
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
+	db, err := repository.NewDb()
+	if err != nil {
+		_ = logger.Log("db", "connect", "err", err)
+		panic(err)
+	}
+
 	var (
-		postRespository = repository.NewPostRepository()
+		postRespository = repository.NewPostRepository(db)
 	)
 
 	fieldKeys := []string{"method"}
