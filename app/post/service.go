@@ -2,7 +2,8 @@ package post
 
 import (
 	"context"
-	"github.com/nsini/blog/repository"
+	"github.com/go-kit/kit/log"
+	"github.com/nsini/blog/app/repository"
 	"github.com/pkg/errors"
 )
 
@@ -13,11 +14,14 @@ type Service interface {
 }
 
 type service struct {
-	post repository.PostRepository
-	user repository.User
+	post   repository.PostRepository
+	user   repository.User
+	logger log.Logger
 }
 
 func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+
+	ctx = context.WithValue(ctx, "name", "post")
 
 	detail, err := c.post.Find(id)
 	if err != nil {
@@ -25,15 +29,16 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 	}
 
 	return map[string]interface{}{
-		"id":      detail.Id,
+		"id":      detail.Model.ID,
 		"title":   detail.Title,
 		"content": detail.Content,
 	}, nil
 }
 
-func NewService(post repository.PostRepository, user repository.User) Service {
+func NewService(logger log.Logger, post repository.PostRepository, user repository.User) Service {
 	return &service{
-		post: post,
-		user: user,
+		post:   post,
+		user:   user,
+		logger: logger,
 	}
 }

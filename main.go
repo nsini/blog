@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
-	"github.com/nsini/blog/post"
-	"github.com/nsini/blog/repository"
+	"github.com/nsini/blog/app/post"
+	"github.com/nsini/blog/app/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -31,14 +31,19 @@ func main() {
 	flag.Parse()
 
 	var logger log.Logger
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+	logger = log.NewLogfmtLogger(log.StdlibWriter{})
+	logger = log.With(logger, "caller", log.DefaultCaller)
 
-	db, err := repository.NewDb()
+	db, err := repository.NewDb(logger)
 	if err != nil {
 		_ = logger.Log("db", "connect", "err", err)
 		panic(err)
 	}
+	defer func() {
+		if err = db.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	var (
 		postRespository = repository.NewPostRepository(db)
@@ -47,7 +52,7 @@ func main() {
 	fieldKeys := []string{"method"}
 
 	var ps post.Service
-	ps = post.NewService(postRespository, repository.User{})
+	ps = post.NewService(logger, postRespository, repository.User{})
 	ps = post.NewLoggingService(logger, ps)
 	ps = post.NewInstrumentingService(
 		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -73,6 +78,7 @@ func main() {
 
 	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	errs := make(chan error, 2)
 	go func() {

@@ -1,20 +1,25 @@
 package post
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/go-kit/kit/examples/shipping/cargo"
+	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/nsini/blog/app/repository"
+	"github.com/nsini/blog/app/templates"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var errBadRoute = errors.New("bad route")
 
 func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
+	ctx := context.Background()
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeError),
@@ -53,8 +58,35 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println(ctx.Value("name"), "is cancel", "encodeResponse")
+				return
+			default:
+				fmt.Println(ctx.Value("name"), "int goroutine", "encodeResponse")
+				time.Sleep(2 * time.Second)
+			}
+		}
+	}()
+
+	buf := new(bytes.Buffer)
+	//var buf bytes.Buffer
+	var name = "post"
+
+	if err := templates.Render("hello world", buf, "views/"+name); err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write([]byte(buf.Bytes())); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func encodeJsonResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
@@ -73,14 +105,13 @@ type errorer interface {
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	switch err {
-	case cargo.ErrUnknown:
+	case repository.PostNotFound:
 		w.WriteHeader(http.StatusNotFound)
 	case ErrInvalidArgument:
 		w.WriteHeader(http.StatusBadRequest)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"error": err.Error(),
-	})
+
+	_, _ = w.Write([]byte(err.Error()))
 }
