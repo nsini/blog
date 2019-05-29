@@ -1,9 +1,8 @@
-package post
+package about
 
 import (
 	"context"
 	"github.com/go-kit/kit/metrics"
-	"github.com/nsini/blog/repository"
 	"time"
 )
 
@@ -21,11 +20,11 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Detail(ctx context.Context, id int64) (rs *repository.Post, err error) {
+func (s *instrumentingService) Detail(ctx context.Context) (rs map[string]interface{}, err error) {
 	defer func(begin time.Time) {
-		s.requestCount.With("method", "detail").Add(1)
-		s.requestLatency.With("method", "detail").Observe(time.Since(begin).Seconds())
+		s.requestCount.With("method", "about").Add(1)
+		s.requestLatency.With("method", "about").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Service.Detail(ctx, id)
+	return s.Service.About(ctx)
 }

@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/log"
-	"github.com/nsini/blog/app/repository"
+	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
 )
 
@@ -19,6 +19,9 @@ type service struct {
 	logger log.Logger
 }
 
+/**
+ * @Title 详情页
+ */
 func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, err error) {
 	detail, err := c.post.Find(id)
 	if err != nil {

@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/nsini/blog/app/repository"
+	"github.com/nsini/blog/repository"
 )
 
 type postRequest struct {

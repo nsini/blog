@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
+	"github.com/nsini/blog/app/about"
 	"github.com/nsini/blog/app/post"
-	"github.com/nsini/blog/app/repository"
+	"github.com/nsini/blog/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -52,6 +53,7 @@ func main() {
 	fieldKeys := []string{"method"}
 
 	var ps post.Service
+	var aboutMe about.Service
 	ps = post.NewService(logger, postRespository, repository.User{})
 	ps = post.NewLoggingService(logger, ps)
 	ps = post.NewInstrumentingService(
@@ -69,12 +71,15 @@ func main() {
 		}, fieldKeys),
 		ps,
 	)
+	aboutMe = about.NewService(logger)
+	aboutMe = about.NewLoggingService(logger, aboutMe)
 
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
 
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
+	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
 
 	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())
