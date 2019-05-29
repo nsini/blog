@@ -29,7 +29,7 @@ func Render(data map[string]interface{}, body io.Writer, tplName string) error {
 	tpl, ok := templatesCache[tplName]
 	if !ok {
 		tpl = pongo2.Must(pongo2.FromFile(tplName + tplExt))
-		templatesCache[tplName] = tpl
+		//templatesCache[tplName] = tpl
 	}
 
 	b, _ := json.Marshal(data)
