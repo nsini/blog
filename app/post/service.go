@@ -10,7 +10,7 @@ import (
 var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
-	Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error)
+	Detail(ctx context.Context, id int64) (rs *repository.Post, err error)
 }
 
 type service struct {
@@ -19,20 +19,17 @@ type service struct {
 	logger log.Logger
 }
 
-func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
-
-	ctx = context.WithValue(ctx, "name", "post")
-
+func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, err error) {
 	detail, err := c.post.Find(id)
 	if err != nil {
 		return
 	}
 
-	return map[string]interface{}{
-		"id":      detail.Model.ID,
-		"title":   detail.Title,
-		"content": detail.Content,
-	}, nil
+	if detail == nil {
+		return nil, repository.PostNotFound
+	}
+
+	return detail, nil
 }
 
 func NewService(logger log.Logger, post repository.PostRepository, user repository.User) Service {

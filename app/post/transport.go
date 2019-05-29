@@ -1,11 +1,9 @@
 package post
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -13,13 +11,12 @@ import (
 	"github.com/nsini/blog/app/templates"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 var errBadRoute = errors.New("bad route")
 
 func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
-	ctx := context.Background()
+	//ctx := context.Background()
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeError),
@@ -28,7 +25,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	detail := kithttp.NewServer(
 		makeDetailEndpoint(ps),
 		decodeDetailRequest,
-		encodeResponse,
+		encodeDetailResponse,
 		opts...,
 	)
 
@@ -53,40 +50,25 @@ func decodeDetailRequest(_ context.Context, r *http.Request) (interface{}, error
 	}, nil
 }
 
-func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
 
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				fmt.Println(ctx.Value("name"), "is cancel", "encodeResponse")
-				return
-			default:
-				fmt.Println(ctx.Value("name"), "int goroutine", "encodeResponse")
-				time.Sleep(2 * time.Second)
-			}
-		}
-	}()
+	ctx = context.WithValue(ctx, "method", "blog-single")
 
-	buf := new(bytes.Buffer)
-	//var buf bytes.Buffer
-	var name = "post"
+	resp := response.(postResponse)
 
-	if err := templates.Render("hello world", buf, "views/"+name); err != nil {
-		return err
+	if resp.Data.IsMarkdown.Int64 != 0 {
+		//str := template.HTML(string(blackfriday.Run([]byte(resp.Data.Content))))
+		//resp.Data.Content = string(blackfriday.Run([]byte(resp.Data.Content)))
 	}
 
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write([]byte(buf.Bytes())); err != nil {
-		return err
-	}
-
-	return nil
+	return templates.RenderHtml(ctx, w, map[string]interface{}{
+		"content": resp.Data.Content,
+		"title":   resp.Data.Title,
+	})
 }
 
 func encodeJsonResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
@@ -102,11 +84,14 @@ type errorer interface {
 	error() error
 }
 
-func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+func encodeError(ctx context.Context, err error, w http.ResponseWriter) {
+	// w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	switch err {
 	case repository.PostNotFound:
 		w.WriteHeader(http.StatusNotFound)
+		ctx = context.WithValue(ctx, "method", "404")
+		_ = templates.RenderHtml(ctx, w, map[string]interface{}{})
+		return
 	case ErrInvalidArgument:
 		w.WriteHeader(http.StatusBadRequest)
 	default:

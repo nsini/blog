@@ -3,6 +3,7 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/log"
+	"github.com/nsini/blog/app/repository"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+func (s *loggingService) Detail(ctx context.Context, id int64) (rs *repository.Post, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
 			"method", "detail",

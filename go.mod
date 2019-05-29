@@ -8,5 +8,9 @@ require (
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/prometheus/client_golang v0.9.3 // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	gopkg.in/guregu/null.v3 v3.4.0
+	gopkg.in/russross/blackfriday.v2 v2.0.1
 )
+
+replace gopkg.in/russross/blackfriday.v2 v2.0.1 => github.com/russross/blackfriday/v2 v2.0.1
