@@ -3,7 +3,6 @@ package post
 import (
 	"context"
 	"errors"
-	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -42,7 +41,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	return r
 }
 
-func decodeListRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 	size, ok := vars["pageSize"]
 	if !ok {
@@ -68,6 +67,9 @@ func decodeListRequest(_ context.Context, r *http.Request) (interface{}, error) 
 	pageSize, _ := strconv.Atoi(size)
 	pageLimit, _ := strconv.Atoi(limit)
 	pageOffset, _ := strconv.Atoi(offset)
+	//ctx = context.WithValue(ctx, "pageSize", pageSize)
+	//ctx = context.WithValue(ctx, "limit", pageLimit)
+	//ctx = context.WithValue(ctx, "offset", pageOffset)
 	return listRequest{
 		pageSize: pageSize,
 		order:    order,
@@ -123,9 +125,9 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 
 	resp := response.(listResponse)
 
-	fmt.Println(resp)
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"list": resp.Data,
+		"list":  resp.Data,
+		"count": resp.Count,
 	})
 }
 

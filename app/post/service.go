@@ -5,6 +5,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
+	"strconv"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
@@ -52,7 +53,7 @@ func (c *service) List(ctx context.Context, order, by string, limit, pageSize, o
 
 	for _, val := range posts {
 		rs = append(rs, map[string]interface{}{
-			"id":         val.ID,
+			"id":         strconv.FormatUint(uint64(val.Model.ID), 10),
 			"title":      val.Title,
 			"desc":       val.Description,
 			"publish_at": val.PushTime.Time.Format("2006/01/02 15:04:05"),
