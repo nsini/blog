@@ -11,7 +11,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
 	Detail(ctx context.Context, id int64) (rs *repository.Post, err error)
-	List(ctx context.Context) (rs map[string]interface{}, err error)
+	List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
 }
 
 type service struct {
@@ -39,7 +39,24 @@ func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, er
 /**
  * @Title 列表页
  */
-func (c *service) List(ctx context.Context) (rs map[string]interface{}, err error) {
+func (c *service) List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
+	// 取列表 判断搜索、分类、Tag条件
+	// 取最多阅读
+
+	posts, count, err := c.post.FindBy(order, by, limit, pageSize, offset)
+	if err != nil {
+		return
+	}
+
+	_ = c.logger.Log("count", count)
+
+	for _, val := range posts {
+		rs = append(rs, map[string]interface{}{
+			"title":      val.Title,
+			"desc":       val.Description,
+			"publish_at": val.PushTime.Time.Format("2006/01/02 15:04:05"),
+		})
+	}
 
 	return
 }

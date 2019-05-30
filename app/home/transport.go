@@ -1,4 +1,4 @@
-package about
+package home
 
 import (
 	"context"
@@ -17,32 +17,32 @@ func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 
-	about := kithttp.NewServer(
-		makeAboutEndpoint(svc),
-		decodeAboutRequest,
-		encodeAboutResponse,
+	index := kithttp.NewServer(
+		makeIndexEndpoint(svc),
+		decodeIndexRequest,
+		encodeIndexResponse,
 		opts...,
 	)
 
 	r := mux.NewRouter()
-	r.Handle("/about", about).Methods("GET")
+	r.Handle("/", index).Methods("GET")
 	return r
 }
 
-func decodeAboutRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeIndexRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
 }
 
-func encodeAboutResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeIndexResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
 
-	ctx = context.WithValue(ctx, "method", "about")
+	ctx = context.WithValue(ctx, "method", "index")
 
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"title": "about",
+		"title": "index",
 	})
 }
 

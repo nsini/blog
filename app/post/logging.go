@@ -28,13 +28,18 @@ func (s *loggingService) Detail(ctx context.Context, id int64) (rs *repository.P
 	return s.Service.Detail(ctx, id)
 }
 
-func (s *loggingService) List(ctx context.Context) (rs map[string]interface{}, err error) {
+func (s *loggingService) List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
 			"method", "List",
+			"order", order,
+			"by", by,
+			"limit", limit,
+			"pageSize", pageSize,
+			"offset", offset,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.List(ctx)
+	return s.Service.List(ctx, order, by, limit, pageSize, offset)
 }

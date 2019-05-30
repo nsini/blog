@@ -3,6 +3,7 @@ package post
 import (
 	"context"
 	"errors"
+	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -42,12 +43,38 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 }
 
 func decodeListRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	//vars := mux.Vars(r)
-	//id, ok := vars["page"]
-	//if !ok {
-	//	return nil, errBadRoute
-	//}
-	return listRequest{}, nil
+	vars := mux.Vars(r)
+	size, ok := vars["pageSize"]
+	if !ok {
+		size = "10"
+	}
+	order, ok := vars["order"]
+	if !ok {
+		order = "desc"
+	}
+	by, ok := vars["by"]
+	if !ok {
+		by = "id"
+	}
+	limit, ok := vars["limit"]
+	if !ok {
+		limit = "10"
+	}
+	offset, ok := vars["offset"]
+	if !ok {
+		offset = "0"
+	}
+
+	pageSize, _ := strconv.Atoi(size)
+	pageLimit, _ := strconv.Atoi(limit)
+	pageOffset, _ := strconv.Atoi(offset)
+	return listRequest{
+		pageSize: pageSize,
+		order:    order,
+		by:       by,
+		limit:    pageLimit,
+		offset:   pageOffset,
+	}, nil
 }
 
 func decodeDetailRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -96,6 +123,7 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 
 	resp := response.(listResponse)
 
+	fmt.Println(resp)
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
 		"list": resp.Data,
 	})

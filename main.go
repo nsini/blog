@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
 	"github.com/nsini/blog/app/about"
+	"github.com/nsini/blog/app/home"
 	"github.com/nsini/blog/app/post"
 	"github.com/nsini/blog/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
@@ -54,6 +55,8 @@ func main() {
 
 	var ps post.Service
 	var aboutMe about.Service
+	var homeSvc home.Service
+	// post
 	ps = post.NewService(logger, postRespository, repository.User{})
 	ps = post.NewLoggingService(logger, ps)
 	ps = post.NewInstrumentingService(
@@ -71,6 +74,12 @@ func main() {
 		}, fieldKeys),
 		ps,
 	)
+
+	// home
+	homeSvc = home.NewService(logger)
+	homeSvc = home.NewLoggingService(logger, homeSvc)
+
+	// about
 	aboutMe = about.NewService(logger)
 	aboutMe = about.NewLoggingService(logger, aboutMe)
 
@@ -80,10 +89,11 @@ func main() {
 
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
+	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))
 
-	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	http.Handle("/", accessControl(mux, logger))
 
 	errs := make(chan error, 2)
 	go func() {
@@ -107,7 +117,7 @@ func envString(env, fallback string) string {
 	return e
 }
 
-func accessControl(h http.Handler) http.Handler {
+func accessControl(h http.Handler, logger log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -116,6 +126,8 @@ func accessControl(h http.Handler) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
+
+		_ = logger.Log("remote-addr", r.RemoteAddr, "uri", r.RequestURI, "method", r.Method, "length", r.ContentLength)
 
 		h.ServeHTTP(w, r)
 	})

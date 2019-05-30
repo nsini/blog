@@ -11,6 +11,8 @@ type postRequest struct {
 }
 
 type listRequest struct {
+	order, by               string
+	limit, pageSize, offset int
 }
 
 type postResponse struct {
@@ -19,8 +21,9 @@ type postResponse struct {
 }
 
 type listResponse struct {
-	Data map[string]interface{} `json:"data,omitempty"`
-	Err  error                  `json:"error,omitempty"`
+	Data  []map[string]interface{} `json:"data,omitempty"`
+	Count uint64                   `json:"count,omitempty"`
+	Err   error                    `json:"error,omitempty"`
 }
 
 func makeDetailEndpoint(s Service) endpoint.Endpoint {
@@ -33,8 +36,8 @@ func makeDetailEndpoint(s Service) endpoint.Endpoint {
 
 func makeListEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		//req := request.(listRequest)
-		rs, err := s.List(ctx)
-		return listResponse{rs, err}, err
+		req := request.(listRequest)
+		rs, count, err := s.List(ctx, req.order, req.by, req.limit, req.pageSize, req.offset)
+		return listResponse{rs, count, err}, err
 	}
 }
