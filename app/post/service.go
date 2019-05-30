@@ -11,6 +11,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
 	Detail(ctx context.Context, id int64) (rs *repository.Post, err error)
+	List(ctx context.Context) (rs map[string]interface{}, err error)
 }
 
 type service struct {
@@ -33,6 +34,14 @@ func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, er
 	}
 
 	return detail, nil
+}
+
+/**
+ * @Title 列表页
+ */
+func (c *service) List(ctx context.Context) (rs map[string]interface{}, err error) {
+
+	return
 }
 
 func NewService(logger log.Logger, post repository.PostRepository, user repository.User) Service {

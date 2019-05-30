@@ -41,7 +41,9 @@ func encodeAboutResponse(ctx context.Context, w http.ResponseWriter, response in
 
 	ctx = context.WithValue(ctx, "method", "about")
 
-	return templates.RenderHtml(ctx, w, map[string]interface{}{})
+	return templates.RenderHtml(ctx, w, map[string]interface{}{
+		"title": "about",
+	})
 }
 
 type errorer interface {

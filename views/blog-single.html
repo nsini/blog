@@ -1,5 +1,23 @@
-
 {% extends "default-layout.html" %}
+
+{% block crumb %}
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Post</h1>
+					<ol class="breadcrumb">
+						<li><a href="/">Home</a></li>
+						<li><a href="/post/">Post list</a></li>
+						<li class="active">post</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}
 
 {% block body %}
 <section class="page-wrapper">

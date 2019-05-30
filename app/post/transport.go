@@ -2,7 +2,6 @@ package post
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -29,9 +28,26 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	list := kithttp.NewServer(
+		makeListEndpoint(ps),
+		decodeListRequest,
+		encodeListResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
+	r.Handle("/post/", list).Methods("GET")
 	r.Handle("/post/{id}", detail).Methods("GET")
 	return r
+}
+
+func decodeListRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	//vars := mux.Vars(r)
+	//id, ok := vars["page"]
+	//if !ok {
+	//	return nil, errBadRoute
+	//}
+	return listRequest{}, nil
 }
 
 func decodeDetailRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -70,13 +86,19 @@ func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response i
 	})
 }
 
-func encodeJsonResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeListResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+
+	ctx = context.WithValue(ctx, "method", "blog-left-sidebar")
+
+	resp := response.(listResponse)
+
+	return templates.RenderHtml(ctx, w, map[string]interface{}{
+		"list": resp.Data,
+	})
 }
 
 type errorer interface {

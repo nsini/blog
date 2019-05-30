@@ -27,3 +27,14 @@ func (s *loggingService) Detail(ctx context.Context, id int64) (rs *repository.P
 	}(time.Now())
 	return s.Service.Detail(ctx, id)
 }
+
+func (s *loggingService) List(ctx context.Context) (rs map[string]interface{}, err error) {
+	defer func(begin time.Time) {
+		_ = s.logger.Log(
+			"method", "List",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.List(ctx)
+}

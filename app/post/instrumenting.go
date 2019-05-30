@@ -29,3 +29,12 @@ func (s *instrumentingService) Detail(ctx context.Context, id int64) (rs *reposi
 
 	return s.Service.Detail(ctx, id)
 }
+
+func (s *instrumentingService) List(ctx context.Context) (rs map[string]interface{}, err error) {
+	defer func(begin time.Time) {
+		s.requestCount.With("method", "list").Add(1)
+		s.requestLatency.With("method", "list").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+
+	return s.Service.List(ctx)
+}
