@@ -23,6 +23,7 @@ type Post struct {
 	Status      int         `gorm:"column:status"`
 	Title       string      `gorm:"column:title"`
 	UserID      null.Int    `gorm:"column:user_id"`
+	//User        User        `gorm:"foreignkey:UserRefer"`
 }
 
 var (
@@ -50,9 +51,15 @@ func (c *post) Find(id int64) (res *Post, err error) {
 	p := Post{
 		ID: id,
 	}
-	if err = c.db.Find(&p, id).Error; err != nil {
+
+	var user User
+
+	if err = c.db.Find(&p, id).Related(&user, "ID").Error; err != nil {
+		//if err = c.db.Find(&p, id).Error; err != nil {
 		return nil, PostNotFound
 	}
+
+	//p.User = user
 	return &p, nil
 }
 
