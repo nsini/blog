@@ -23,7 +23,7 @@ type Post struct {
 	Status      int         `gorm:"column:status"`
 	Title       string      `gorm:"column:title"`
 	UserID      null.Int    `gorm:"column:user_id"`
-	//User        User        `gorm:"foreignkey:UserRefer"`
+	User        User        `gorm:"foreignkey:UserId"`
 }
 
 var (
@@ -48,18 +48,11 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 }
 
 func (c *post) Find(id int64) (res *Post, err error) {
-	p := Post{
-		ID: id,
-	}
+	var p Post
 
-	var user User
-
-	if err = c.db.Find(&p, id).Related(&user, "ID").Error; err != nil {
-		//if err = c.db.Find(&p, id).Error; err != nil {
+	if err = c.db.Where("id=?", id).Preload("User").First(&p).Error; err != nil {
 		return nil, PostNotFound
 	}
-
-	//p.User = user
 	return &p, nil
 }
 
@@ -67,7 +60,7 @@ func (c *post) FindBy(order, by string, limit, pageSize, offset int) ([]*Post, u
 
 	posts := make([]*Post, 0)
 	var count uint64
-	if err := c.db.Order(gorm.Expr(by + " " + order)).Where("push_time IS NOT NULL").Offset(offset).Limit(limit).Find(&posts).Count(&count).Error; err != nil {
+	if err := c.db.Order(gorm.Expr(by + " " + order)).Where("push_time IS NOT NULL").Preload("User").Offset(offset).Limit(limit).Find(&posts).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
 

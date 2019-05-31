@@ -2,17 +2,24 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"time"
 )
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"column:email"`
-	Username string `gorm:"column:username"`
-	Password string `gorm:"column:password"`
-	//ID       int64  `gorm:"column:id;primary_key"`
-	//Posts []Post `gorm:"foreignkey:UserId"`
-	Posts []Post `gorm:"polymorphic:Owner"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	Email     string    `gorm:"column:email"`
+	ID        int       `gorm:"column:id;primary_key"`
+	Password  string    `gorm:"column:password"`
+	Username  string    `gorm:"column:username"`
+
+	//Posts []Post `gorm:"ForeignKey:UserID;AssociationForeignKey:Refer"`
 }
+
+var (
+	UserNotFound = errors.New("user not found!")
+)
 
 func (p *User) TableName() string {
 	return "users"

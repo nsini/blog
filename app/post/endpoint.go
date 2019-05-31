@@ -3,7 +3,6 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/nsini/blog/repository"
 )
 
 type postRequest struct {
@@ -16,8 +15,8 @@ type listRequest struct {
 }
 
 type postResponse struct {
-	Data *repository.Post `json:"data,omitempty"`
-	Err  error            `json:"error,omitempty"`
+	Data map[string]interface{} `json:"data,omitempty"`
+	Err  error                  `json:"error,omitempty"`
 }
 
 type listResponse struct {

@@ -105,14 +105,7 @@ func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response i
 
 	resp := response.(postResponse)
 
-	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"content":    resp.Data.Content,
-		"title":      resp.Data.Title,
-		"publish_at": resp.Data.PushTime.Time.Format("2006/01/02 15:04:05"),
-		"updated_at": resp.Data.UpdatedAt,
-		"author":     "嘟嘟噜",
-		"comment":    4,
-	})
+	return templates.RenderHtml(ctx, w, resp.Data)
 }
 
 func encodeListResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {

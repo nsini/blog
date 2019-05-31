@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/flosch/pongo2"
-	"gopkg.in/russross/blackfriday.v2"
+	"github.com/shurcooL/github_flavored_markdown"
 	"io"
 	"net/http"
 )
@@ -18,7 +18,7 @@ var (
 
 func init() {
 	if err := pongo2.RegisterFilter("markdown", func(in *pongo2.Value, param *pongo2.Value) (out *pongo2.Value, err *pongo2.Error) {
-		return pongo2.AsSafeValue(string(blackfriday.Run([]byte(in.String())))), nil
+		return pongo2.AsSafeValue(string(github_flavored_markdown.Markdown([]byte(in.String())))), nil
 	}); err != nil {
 		fmt.Println("err", err.Error())
 	}

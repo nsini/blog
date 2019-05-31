@@ -11,7 +11,7 @@ import (
 var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
-	Detail(ctx context.Context, id int64) (rs *repository.Post, err error)
+	Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error)
 	List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
 }
 
@@ -24,7 +24,7 @@ type service struct {
 /**
  * @Title 详情页
  */
-func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, err error) {
+func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
 	detail, err := c.post.Find(id)
 	if err != nil {
 		return
@@ -34,7 +34,14 @@ func (c *service) Detail(ctx context.Context, id int64) (rs *repository.Post, er
 		return nil, repository.PostNotFound
 	}
 
-	return detail, nil
+	return map[string]interface{}{
+		"content":    detail.Content,
+		"title":      detail.Title,
+		"publish_at": detail.PushTime.Time.Format("2006/01/02 15:04:05"),
+		"updated_at": detail.UpdatedAt,
+		"author":     detail.User.Username,
+		"comment":    4,
+	}, nil
 }
 
 /**
