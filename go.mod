@@ -27,4 +27,8 @@ replace golang.org/x/sync v0.0.0-20181108010431-42b317875d0f => github.com/golan
 
 replace golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a => github.com/golang/sync v0.0.0-20181108010431-42b317875d0f
 
+replace golang.org/x/net v0.0.0-20190311183353-d8887717615a => github.com/golang/net v0.0.0-20190311183353-d8887717615a
+
+replace golang.org/x/net v0.0.0-20181220203305-927f97764cc3 => github.com/golang/net v0.0.0-20181220203305-927f97764cc3
+
 replace golang.org/x/net v0.0.0-20181114220301-adae6a3d119a => github.com/golang/net v0.0.0-20181114220301-adae6a3d119a

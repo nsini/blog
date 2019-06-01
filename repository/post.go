@@ -37,6 +37,7 @@ func (p *Post) TableName() string {
 type PostRepository interface {
 	Find(id int64) (res *Post, err error)
 	FindBy(order, by string, limit, pageSize, offset int) ([]*Post, uint64, error)
+	Popular() (posts []*Post, err error)
 }
 
 type post struct {
@@ -65,4 +66,12 @@ func (c *post) FindBy(order, by string, limit, pageSize, offset int) ([]*Post, u
 	}
 
 	return posts, count, nil
+}
+
+func (c *post) Popular() (posts []*Post, err error) {
+	if err = c.db.Order("read_num DESC").Last(&posts).Error; err != nil {
+		return
+	}
+
+	return
 }

@@ -2,6 +2,7 @@ package post
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -35,10 +36,33 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	popular := kithttp.NewServer(
+		makePopularEndpoint(ps),
+		decodePopularRequest,
+		encodePopularResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 	r.Handle("/post/", list).Methods("GET")
 	r.Handle("/post/{id}", detail).Methods("GET")
+	r.Handle("/post/popular", popular).Methods("GET")
 	return r
+}
+
+func decodePopularRequest(_ context.Context, r *http.Request) (interface{}, error) {
+
+	return popularRequest{}, nil
+}
+
+func encodePopularResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	if e, ok := response.(errorer); ok && e.error() != nil {
+		encodeError(ctx, e.error(), w)
+		return nil
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(response)
 }
 
 func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error) {

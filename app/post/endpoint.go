@@ -5,6 +5,14 @@ import (
 	"github.com/go-kit/kit/endpoint"
 )
 
+type popularRequest struct {
+}
+
+type popularResponse struct {
+	Data []map[string]interface{} `json:"data,omitempty"`
+	Err  error                    `json:"error,omitempty"`
+}
+
 type postRequest struct {
 	Id int64
 }
@@ -38,5 +46,13 @@ func makeListEndpoint(s Service) endpoint.Endpoint {
 		req := request.(listRequest)
 		rs, count, err := s.List(ctx, req.order, req.by, req.limit, req.pageSize, req.offset)
 		return listResponse{rs, count, err}, err
+	}
+}
+
+func makePopularEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		//req := request.(popularRequest)
+		rs, err := s.Popular(ctx)
+		return popularResponse{rs, err}, err
 	}
 }

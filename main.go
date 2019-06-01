@@ -48,7 +48,8 @@ func main() {
 	}()
 
 	var (
-		postRespository = repository.NewPostRepository(db)
+		postRepository  = repository.NewPostRepository(db)
+		imageRepository = repository.NewImageRepository(db)
 	)
 
 	fieldKeys := []string{"method"}
@@ -57,7 +58,7 @@ func main() {
 	var aboutMe about.Service
 	var homeSvc home.Service
 	// post
-	ps = post.NewService(logger, postRespository, repository.User{})
+	ps = post.NewService(logger, postRepository, repository.NewUserRepository(db), imageRepository)
 	ps = post.NewLoggingService(logger, ps)
 	ps = post.NewInstrumentingService(
 		prometheus.NewCounterFrom(stdprometheus.CounterOpts{

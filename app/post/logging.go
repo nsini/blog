@@ -42,3 +42,14 @@ func (s *loggingService) List(ctx context.Context, order, by string, limit, page
 	}(time.Now())
 	return s.Service.List(ctx, order, by, limit, pageSize, offset)
 }
+
+func (s *loggingService) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
+	defer func(begin time.Time) {
+		_ = s.logger.Log(
+			"method", "Popular",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.Popular(ctx)
+}

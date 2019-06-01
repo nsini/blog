@@ -2,6 +2,7 @@ package post
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
@@ -13,11 +14,13 @@ var ErrInvalidArgument = errors.New("invalid argument")
 type Service interface {
 	Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error)
 	List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
+	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
 }
 
 type service struct {
 	post   repository.PostRepository
-	user   repository.User
+	user   repository.UserRepository
+	image  repository.ImageRepository
 	logger log.Logger
 }
 
@@ -34,13 +37,20 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 		return nil, repository.PostNotFound
 	}
 
+	var headerImage string
+
+	if image, err := c.image.FindByPostIdLast(id); err == nil && image != nil {
+		headerImage = "/image/" + image.ImagePath.String
+	}
+
 	return map[string]interface{}{
-		"content":    detail.Content,
-		"title":      detail.Title,
-		"publish_at": detail.PushTime.Time.Format("2006/01/02 15:04:05"),
-		"updated_at": detail.UpdatedAt,
-		"author":     detail.User.Username,
-		"comment":    4,
+		"content":      detail.Content,
+		"title":        detail.Title,
+		"publish_at":   detail.PushTime.Time.Format("2006/01/02 15:04:05"),
+		"updated_at":   detail.UpdatedAt,
+		"author":       detail.User.Username,
+		"comment":      4,
+		"banner_image": headerImage,
 	}, nil
 }
 
@@ -70,10 +80,25 @@ func (c *service) List(ctx context.Context, order, by string, limit, pageSize, o
 	return
 }
 
-func NewService(logger log.Logger, post repository.PostRepository, user repository.User) Service {
+func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
+
+	posts, err := c.post.Popular()
+	if err != nil {
+		return
+	}
+
+	for _, post := range posts {
+		fmt.Println(post.Title)
+	}
+
+	return
+}
+
+func NewService(logger log.Logger, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
 	return &service{
 		post:   post,
 		user:   user,
+		image:  image,
 		logger: logger,
 	}
 }
