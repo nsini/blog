@@ -2,7 +2,6 @@ package post
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
@@ -80,6 +79,9 @@ func (c *service) List(ctx context.Context, order, by string, limit, pageSize, o
 	return
 }
 
+/**
+ * @Title 受欢迎的
+ */
 func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
 
 	posts, err := c.post.Popular()
@@ -87,8 +89,25 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 		return
 	}
 
+	var postIds []uint
+
 	for _, post := range posts {
-		fmt.Println(post.Title)
+		postIds = append(postIds, post.Model.ID)
+	}
+
+	if images, err := c.image.FindByPostIds(postIds); err == nil && images != nil {
+		for _, image := range images {
+			c.logger.Log("imageName", image.ImageName)
+		}
+	}
+
+	for _, post := range posts {
+		rs = append(rs, map[string]interface{}{
+			"title":      post.Title,
+			"desc":       post.Description,
+			"id":         post.Model.ID,
+			"header_url": "",
+		})
 	}
 
 	return

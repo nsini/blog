@@ -45,13 +45,12 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 	r.Handle("/post/", list).Methods("GET")
-	r.Handle("/post/{id}", detail).Methods("GET")
 	r.Handle("/post/popular", popular).Methods("GET")
+	r.Handle("/post/{id}", detail).Methods("GET")
 	return r
 }
 
 func decodePopularRequest(_ context.Context, r *http.Request) (interface{}, error) {
-
 	return popularRequest{}, nil
 }
 

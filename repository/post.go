@@ -58,20 +58,17 @@ func (c *post) Find(id int64) (res *Post, err error) {
 }
 
 func (c *post) FindBy(order, by string, limit, pageSize, offset int) ([]*Post, uint64, error) {
-
 	posts := make([]*Post, 0)
 	var count uint64
 	if err := c.db.Order(gorm.Expr(by + " " + order)).Where("push_time IS NOT NULL").Preload("User").Offset(offset).Limit(limit).Find(&posts).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
-
 	return posts, count, nil
 }
 
 func (c *post) Popular() (posts []*Post, err error) {
-	if err = c.db.Order("read_num DESC").Last(&posts).Error; err != nil {
+	if err = c.db.Order("read_num DESC").Limit(5).Find(&posts).Error; err != nil {
 		return
 	}
-
 	return
 }
