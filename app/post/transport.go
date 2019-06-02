@@ -142,13 +142,26 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 
 func postPaginator(count, pageSize, offset int) string {
 	var res []string
-	res = append(res, `<li><a href="#">Prev</a></li>`)
-	for i := 1; i < (count / pageSize); i++ {
-		offset := (i - 1) * 10
-		res = append(res, fmt.Sprintf(`<li class="active"><a href="/post/?pageSize=10&offset=%d">%d</a></li>`, offset, i))
+	var prev, next int
+	prev = offset - pageSize
+	next = offset + pageSize
+	if offset-pageSize < 0 {
+		prev = 0
 	}
-	res = append(res, `<li><a href="#">Next</a></li>`)
-	return strings.Join(res, "")
+	if offset+pageSize > count {
+		next = offset
+	}
+	res = append(res, fmt.Sprintf(`<li><a href="/post/?pageSize=10&offset=%d">Prev</a></li>`, prev))
+	for i := 1; i < (count / pageSize); i++ {
+		os := (i - 1) * 10
+		var active string
+		if offset == os {
+			active = `class="active"`
+		}
+		res = append(res, fmt.Sprintf(`<li %s><a href="/post/?pageSize=10&offset=%d">%d</a></li>`, active, os, i))
+	}
+	res = append(res, fmt.Sprintf(`<li><a href="/post/?pageSize=10&offset=%d">Next</a></li>`, next))
+	return strings.Join(res, "\n")
 }
 
 type errorer interface {

@@ -30,6 +30,12 @@ func init() {
 		fmt.Println("err", err.Error())
 	}
 
+	if err := pongo2.RegisterFilter("str2html", func(in *pongo2.Value, param *pongo2.Value) (out *pongo2.Value, err *pongo2.Error) {
+		return pongo2.AsValue(in), nil
+	}); err != nil {
+		fmt.Println("err", err.Error())
+	}
+
 	//if err := pongo2.RegisterFilter("paginator", func(in *pongo2.Value, param *pongo2.Value) (out *pongo2.Value, err *pongo2.Error) {
 	//
 	//	var res []string
