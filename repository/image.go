@@ -51,8 +51,8 @@ func (c *image) FindByPostIdLast(postId int64) (res *Image, err error) {
 }
 
 func (c *image) FindByPostIds(ids []uint) (res []*Image, err error) {
-	if err = c.db.Raw("SELECT image_name,image_path,MAX(id) last_post FROM `images`  WHERE `images`.`deleted_at` IS NULL AND ((post_id in (?))) GROUP BY post_id ORDER BY image_time DESC", ids).Scan(&res).Error; err != nil {
-		//if err = c.db.Order("image_time DESC").Where("post_id in (?)", ids).Group("post_id").Find(&res).Error; err != nil {
+	if err = c.db.Raw("SELECT image_name,image_path,MAX(id) id,post_id,real_path FROM `images`  WHERE `images`.`deleted_at` IS NULL AND ((post_id in (?))) GROUP BY post_id ORDER BY image_time DESC", ids).
+		Scan(&res).Error; err != nil {
 		return
 	}
 	return

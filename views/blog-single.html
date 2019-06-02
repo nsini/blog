@@ -26,7 +26,7 @@
 			<div class="col-md-12">
 				<div class="post post-single">
 					<div class="post-thumb">
-						<img class="img-responsive" src="http://source.lattecake.com/{{banner_image}}" alt="">
+						<img class="img-responsive" src="{{banner_image}}" alt="">
 					</div>
 					<h2 class="post-title">{{title}}</h2>
 					<div class="post-meta">
@@ -42,7 +42,7 @@
 									<i class="tf-ion-ios-pricetags"></i> 生活</a>,<a href=""> 旅游</a>, <a href="">技术</a>
 							</li>
 							<li>
-								<a href=""><i class="tf-ion-chatbubbles"></i> {{comment}} 条评论</a>
+								<a href=""><i class="tf-ion-chatbubbles"></i> {{comment|toString}} 条评论</a>
 							</li>
 						</ul>
 					</div>
@@ -64,7 +64,7 @@
 				    </div>-->
 
 					<div class="post-comments">
-						<h3 class="post-sub-heading">{{comment}} 条评论</h3>
+						<h3 class="post-sub-heading">{{comment|toString}} 条评论</h3>
 						<ul class="media-list comments-list m-bot-50 clearlist">
 							<!-- Comment Item start-->
 							<li class="media">

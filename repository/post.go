@@ -23,7 +23,7 @@ type Post struct {
 	Status      int         `gorm:"column:status"`
 	Title       string      `gorm:"column:title"`
 	UserID      null.Int    `gorm:"column:user_id"`
-	User        User        `gorm:"foreignkey:UserId"`
+	User
 }
 
 var (
@@ -38,6 +38,7 @@ type PostRepository interface {
 	Find(id int64) (res *Post, err error)
 	FindBy(order, by string, limit, pageSize, offset int) ([]*Post, uint64, error)
 	Popular() (posts []*Post, err error)
+	SetReadNum(p *Post) error
 }
 
 type post struct {
@@ -51,7 +52,8 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 func (c *post) Find(id int64) (res *Post, err error) {
 	var p Post
 
-	if err = c.db.Where("id=?", id).Preload("User").First(&p).Error; err != nil {
+	if err = c.db.Select("posts.*,users.*").Where("posts.id=?", id).Joins("INNER JOIN users ON posts.user_id = users.id").First(&p).Error; err != nil {
+		//if err = c.db.Where("id=?", id).Related(p.User).First(&p).Error; err != nil {
 		return nil, PostNotFound
 	}
 	return &p, nil
@@ -60,7 +62,10 @@ func (c *post) Find(id int64) (res *Post, err error) {
 func (c *post) FindBy(order, by string, limit, pageSize, offset int) ([]*Post, uint64, error) {
 	posts := make([]*Post, 0)
 	var count uint64
-	if err := c.db.Order(gorm.Expr(by + " " + order)).Where("push_time IS NOT NULL").Preload("User").Offset(offset).Limit(limit).Find(&posts).Count(&count).Error; err != nil {
+	if err := c.db.Select("posts.*,users.*").Order(gorm.Expr("posts." + by + " " + order)).
+		Where("posts.push_time IS NOT NULL").
+		Joins("INNER JOIN users ON posts.user_id = users.id").
+		Offset(offset).Limit(limit).Find(&posts).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
 	return posts, count, nil
@@ -71,4 +76,9 @@ func (c *post) Popular() (posts []*Post, err error) {
 		return
 	}
 	return
+}
+
+func (c *post) SetReadNum(p *Post) error {
+	p.ReadNum += 1
+	return c.db.Exec("UPDATE `posts` SET `read_num` = ?  WHERE `posts`.`deleted_at` IS NULL AND `posts`.`id` = ?", p.ReadNum, p.Model.ID).Error
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/nsini/blog/app/about"
 	"github.com/nsini/blog/app/home"
 	"github.com/nsini/blog/app/post"
+	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -26,17 +27,20 @@ func main() {
 	var (
 		addr = envString("PORT", defaultPort)
 
-		httpAddr = flag.String("http.addr", ":"+addr, "HTTP listen address")
+		httpAddr   = flag.String("http.addr", ":"+addr, "HTTP listen address")
+		configAddr = flag.String("config.addr", "", "config file")
 		//ctx      = context.Background()
 	)
 
 	flag.Parse()
 
+	cf := config.NewConfig(*configAddr)
+
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.StdlibWriter{})
 	logger = log.With(logger, "caller", log.DefaultCaller)
 
-	db, err := repository.NewDb(logger)
+	db, err := repository.NewDb(logger, cf)
 	if err != nil {
 		_ = logger.Log("db", "connect", "err", err)
 		panic(err)
@@ -58,7 +62,7 @@ func main() {
 	var aboutMe about.Service
 	var homeSvc home.Service
 	// post
-	ps = post.NewService(logger, postRepository, repository.NewUserRepository(db), imageRepository)
+	ps = post.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
 	ps = post.NewLoggingService(logger, ps)
 	ps = post.NewInstrumentingService(
 		prometheus.NewCounterFrom(stdprometheus.CounterOpts{

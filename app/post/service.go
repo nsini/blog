@@ -3,9 +3,11 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/log"
+	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
 	"strconv"
+	"strings"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
@@ -21,6 +23,7 @@ type service struct {
 	user   repository.UserRepository
 	image  repository.ImageRepository
 	logger log.Logger
+	config config.Config
 }
 
 /**
@@ -36,10 +39,16 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 		return nil, repository.PostNotFound
 	}
 
+	go func() {
+		if err = c.post.SetReadNum(detail); err != nil {
+			_ = c.logger.Log("post.SetReadNum", err)
+		}
+	}()
+
 	var headerImage string
 
 	if image, err := c.image.FindByPostIdLast(id); err == nil && image != nil {
-		headerImage = "/image/" + image.ImagePath.String
+		headerImage = imageUrl(image.RealPath.String, c.config.Get("image-domain"))
 	}
 
 	return map[string]interface{}{
@@ -48,7 +57,7 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 		"publish_at":   detail.PushTime.Time.Format("2006/01/02 15:04:05"),
 		"updated_at":   detail.UpdatedAt,
 		"author":       detail.User.Username,
-		"comment":      4,
+		"comment":      detail.Reviews,
 		"banner_image": headerImage,
 	}, nil
 }
@@ -65,14 +74,37 @@ func (c *service) List(ctx context.Context, order, by string, limit, pageSize, o
 		return
 	}
 
+	var postIds []uint
+
+	for _, post := range posts {
+		postIds = append(postIds, post.Model.ID)
+	}
+
+	images, err := c.image.FindByPostIds(postIds)
+	if err == nil && images == nil {
+		_ = c.logger.Log("c.image.FindByPostIds", "postIds", "err", err)
+	}
+
+	imageMap := make(map[int64]string, len(images))
+	for _, image := range images {
+		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.Get("image-domain"))
+	}
+
 	_ = c.logger.Log("count", count)
 
 	for _, val := range posts {
+		imageUrl, ok := imageMap[int64(val.Model.ID)]
+		if !ok {
+			_ = c.logger.Log("postId", val.Model.ID, "image", ok)
+		}
 		rs = append(rs, map[string]interface{}{
 			"id":         strconv.FormatUint(uint64(val.Model.ID), 10),
 			"title":      val.Title,
 			"desc":       val.Description,
 			"publish_at": val.PushTime.Time.Format("2006/01/02 15:04:05"),
+			"image_url":  imageUrl,
+			"comment":    val.Reviews,
+			"author":     val.User.Username,
 		})
 	}
 
@@ -95,29 +127,42 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 		postIds = append(postIds, post.Model.ID)
 	}
 
-	if images, err := c.image.FindByPostIds(postIds); err == nil && images != nil {
-		for _, image := range images {
-			c.logger.Log("imageName", image.ImageName)
-		}
+	images, err := c.image.FindByPostIds(postIds)
+	if err == nil && images == nil {
+		_ = c.logger.Log("c.image.FindByPostIds", "postIds", "err", err)
+	}
+
+	imageMap := make(map[int64]string, len(images))
+	for _, image := range images {
+		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.Get("image-domain"))
 	}
 
 	for _, post := range posts {
+		imageUrl, ok := imageMap[int64(post.Model.ID)]
+		if !ok {
+			_ = c.logger.Log("postId", post.Model.ID, "image", ok)
+		}
 		rs = append(rs, map[string]interface{}{
-			"title":      post.Title,
-			"desc":       post.Description,
-			"id":         post.Model.ID,
-			"header_url": "",
+			"title":     post.Title,
+			"desc":      post.Description,
+			"id":        post.Model.ID,
+			"image_url": imageUrl,
 		})
 	}
 
 	return
 }
 
-func NewService(logger log.Logger, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
+func imageUrl(path, imageDomain string) string {
+	return strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1)
+}
+
+func NewService(logger log.Logger, cf config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
 	return &service{
 		post:   post,
 		user:   user,
 		image:  image,
 		logger: logger,
+		config: cf,
 	}
 }
