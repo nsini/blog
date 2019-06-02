@@ -37,41 +37,8 @@
                     <!-- Widget Latest Posts -->
                     <div class="widget widget-latest-post">
                         <h4 class="widget-title">Popular Posts</h4>
-                        <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="/static/images/blog/post-thumb.jpg" alt="Image">
-                            </a>
-                            <div class="media-body">
-                                <h4 class="media-heading"><a href="">Introducing Swift for Mac</a></h4>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quis, officia.</p>
-                            </div>
-                        </div>
-                        <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="/static/images/blog/post-thumb-2.jpg" alt="Image">
-                            </a>
-                            <div class="media-body">
-                                <h4 class="media-heading"><a href="">Welcome to Themefisher Family</a></h4>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quis, officia.</p>
-                            </div>
-                        </div>
-                        <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="/static/images/blog/post-thumb-3.jpg" alt="Image">
-                            </a>
-                            <div class="media-body">
-                                <h4 class="media-heading"><a href="">Warm welcome from swift</a></h4>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quis, officia.</p>
-                            </div>
-                        </div>
-                        <div class="media">
-                            <a class="pull-left" href="#">
-                                <img class="media-object" src="/static/images/blog/post-thumb.jpg" alt="Image">
-                            </a>
-                            <div class="media-body">
-                                <h4 class="media-heading"><a href="">Introducing Swift for Mac</a></h4>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quis, officia.</p>
-                            </div>
+                        <div id="popular-posts">
+
                         </div>
                     </div>
                     <!-- End Latest Posts -->
@@ -154,3 +121,29 @@
     </div>
 </div>
 {% endblock %}
+
+
+{% block mainJs %}
+<script>
+    $.ajax({
+        type: "GET",
+        url: "/post/popular",
+        dataType: "json",
+        success: function (data) {
+            var html = '';
+            $.each(data.data, function (index, val) {
+                html += '<div class="media">\n' +
+                    '                            <a class="pull-left" href="/post/' + val.id + '">\n' +
+                    '                                <img class="media-object" src="' + val.image_url + '" alt="Image">\n' +
+                    '                            </a>\n' +
+                    '                            <div class="media-body">\n' +
+                    '                                <h4 class="media-heading"><a href="">' + val.title + '</a></h4>\n' +
+                    '                                <p>' + val.desc + '</p>\n' +
+                    '                            </div>\n' +
+                    '                        </div>'
+            });
+            $('#popular-posts').html(html);
+        }
+    });
+</script>
+{% endblock%}

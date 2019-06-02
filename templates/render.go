@@ -35,20 +35,6 @@ func init() {
 	}); err != nil {
 		fmt.Println("err", err.Error())
 	}
-
-	//if err := pongo2.RegisterFilter("paginator", func(in *pongo2.Value, param *pongo2.Value) (out *pongo2.Value, err *pongo2.Error) {
-	//
-	//	var res []string
-	//
-	//	for i := 1; i < (in.Integer() / param.Integer()); i++ {
-	//		offset := (i - 1) * 10
-	//		res = append(res, fmt.Sprintf(`<li class="active"><a href="/post/?pageSize=10&offset=%d">%d</a></li>`, offset, i))
-	//	}
-	//
-	//	return pongo2.AsValue([]byte(strings.Join(res, ""))), nil
-	//}); err != nil {
-	//	fmt.Println("err", err.Error())
-	//}
 }
 
 func Render(data map[string]interface{}, body io.Writer, tplName string) error {
@@ -63,7 +49,7 @@ func Render(data map[string]interface{}, body io.Writer, tplName string) error {
 
 	var ctxData pongo2.Context
 	if err := json.Unmarshal(b, &ctxData); err != nil {
-		// todo
+		fmt.Println("err", err.Error())
 	}
 
 	if err := tpl.ExecuteWriter(ctxData, body); err != nil {

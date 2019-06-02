@@ -10,5 +10,6 @@ FROM alpine:latest
 
 COPY --from=build-env /go/bin/blog /go/bin/blog
 COPY ./views /go/bin/
+COPY ./static /go/bin/
 WORKDIR /go/bin/
 CMD ["/go/bin/blog"]

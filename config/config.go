@@ -16,7 +16,7 @@ func (c *config) Get(key string) string {
 
 	switch key {
 	case "image-domain":
-		return "http://source.lattecake.com/images"
+		return "http://source.lattecake.com/"
 
 	}
 

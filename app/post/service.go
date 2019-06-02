@@ -41,7 +41,7 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 
 	go func() {
 		if err = c.post.SetReadNum(detail); err != nil {
-			_ = c.logger.Log("post.SetReadNum", err)
+			_ = c.logger.Log("post.SetReadNum", err.Error())
 		}
 	}()
 
@@ -142,9 +142,11 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 		if !ok {
 			_ = c.logger.Log("postId", post.Model.ID, "image", ok)
 		}
+
+		desc := []rune(post.Description.String)
 		rs = append(rs, map[string]interface{}{
 			"title":     post.Title,
-			"desc":      post.Description,
+			"desc":      string(desc[:40]),
 			"id":        post.Model.ID,
 			"image_url": imageUrl,
 		})
