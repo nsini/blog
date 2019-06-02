@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -11,6 +12,7 @@ import (
 	"github.com/nsini/blog/templates"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var errBadRoute = errors.New("bad route")
@@ -46,7 +48,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	r := mux.NewRouter()
 	r.Handle("/post/", list).Methods("GET")
 	r.Handle("/post/popular", popular).Methods("GET")
-	r.Handle("/post/{id}", detail).Methods("GET")
+	r.Handle("/post/{id:[0-9]+}", detail).Methods("GET")
 	return r
 }
 
@@ -65,39 +67,30 @@ func encodePopularResponse(ctx context.Context, w http.ResponseWriter, response 
 }
 
 func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	size, ok := vars["pageSize"]
-	if !ok {
+	size := r.URL.Query().Get("pageSize")
+	order := r.URL.Query().Get("order")
+	by := r.URL.Query().Get("by")
+	offset := r.URL.Query().Get("offset")
+	if size == "" {
 		size = "10"
 	}
-	order, ok := vars["order"]
-	if !ok {
+	if order == "" {
 		order = "desc"
 	}
-	by, ok := vars["by"]
-	if !ok {
+	if by == "" {
 		by = "id"
 	}
-	limit, ok := vars["limit"]
-	if !ok {
-		limit = "10"
-	}
-	offset, ok := vars["offset"]
-	if !ok {
+
+	if offset == "" {
 		offset = "0"
 	}
 
 	pageSize, _ := strconv.Atoi(size)
-	pageLimit, _ := strconv.Atoi(limit)
 	pageOffset, _ := strconv.Atoi(offset)
-	//ctx = context.WithValue(ctx, "pageSize", pageSize)
-	//ctx = context.WithValue(ctx, "limit", pageLimit)
-	//ctx = context.WithValue(ctx, "offset", pageOffset)
 	return listRequest{
 		pageSize: pageSize,
 		order:    order,
 		by:       by,
-		limit:    pageLimit,
 		offset:   pageOffset,
 	}, nil
 }
@@ -142,9 +135,20 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 	resp := response.(listResponse)
 
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"list":  resp.Data,
-		"count": resp.Count,
+		"list":      resp.Data,
+		"paginator": postPaginator(int(resp.Count), resp.Paginator.PageSize, resp.Paginator.Offset),
 	})
+}
+
+func postPaginator(count, pageSize, offset int) string {
+	var res []string
+	res = append(res, `<li><a href="#">Prev</a></li>`)
+	for i := 1; i < (count / pageSize); i++ {
+		offset := (i - 1) * 10
+		res = append(res, fmt.Sprintf(`<li class="active"><a href="/post/?pageSize=10&offset=%d">%d</a></li>`, offset, i))
+	}
+	res = append(res, `<li><a href="#">Next</a></li>`)
+	return strings.Join(res, "")
 }
 
 type errorer interface {

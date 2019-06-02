@@ -14,7 +14,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
 	Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error)
-	List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
+	List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
 }
 
@@ -65,11 +65,11 @@ func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface
 /**
  * @Title 列表页
  */
-func (c *service) List(ctx context.Context, order, by string, limit, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
+func (c *service) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
 	// 取列表 判断搜索、分类、Tag条件
 	// 取最多阅读
 
-	posts, count, err := c.post.FindBy(order, by, limit, pageSize, offset)
+	posts, count, err := c.post.FindBy(order, by, pageSize, offset)
 	if err != nil {
 		return
 	}
