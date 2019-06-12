@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
 	"github.com/nsini/blog/app/about"
+	"github.com/nsini/blog/app/api"
 	"github.com/nsini/blog/app/home"
 	"github.com/nsini/blog/app/post"
 	"github.com/nsini/blog/config"
@@ -61,10 +62,15 @@ func main() {
 	var ps post.Service
 	var aboutMe about.Service
 	var homeSvc home.Service
+	var apiSvc api.Service
 	// post
 	ps = post.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
 	ps = post.NewLoggingService(logger, ps)
-	ps = post.NewInstrumentingService(
+
+	// api
+	apiSvc = api.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
+	apiSvc = api.NewLoggingService(logger, apiSvc)
+	apiSvc = api.NewInstrumentingService(
 		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
 			Subsystem: "post_service",
@@ -77,7 +83,7 @@ func main() {
 			Name:      "request_latency_microseconds",
 			Help:      "Total duration of requests in microseconds.",
 		}, fieldKeys),
-		ps,
+		apiSvc,
 	)
 
 	// home
@@ -94,6 +100,7 @@ func main() {
 
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
+	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger))
 	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))
 
 	http.Handle("/metrics", promhttp.Handler())
