@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<methodCall>
+    <methodName>metaWeblog.newPost</methodName>
+    <params>
+        <param>
+            <value>
+                <string>0</string>
+            </value>
+        </param>
+        <param>
+            <value>
+                <string>root</string>
+            </value>
+        </param>
+        <param>
+            <value>
+                <string>admin</string>
+            </value>
+        </param>
+        <param>
+            <value>
+                <struct>
+                    <member>
+                        <name>post_status</name>
+                        <value>
+                            <string>publish</string>
+                        </value>
+                    </member>
+                    <member>
+                        <name>post_type</name>
+                        <value>
+                            <string>post</string>
+                        </value>
+                    </member>
+                    <member>
+                        <name>categories</name>
+                        <value>
+                            <array>
+                                <data>
+                                    <value>
+                                        <string>技术</string>
+                                    </value>
+                                </data>
+                            </array>
+                        </value>
+                    </member>
+                    <member>
+                        <name>title</name>
+                        <value>
+                            <string>Docker Repo</string>
+                        </value>
+                    </member>
+                    <member>
+                        <name>dateCreated</name>
+                        <value>
+                            <dateTime.iso8601>20190613T06:49:26Z</dateTime.iso8601>
+                        </value>
+                    </member>
+                    <member>
+                        <name>wp_slug</name>
+                        <value>
+                            <string>Docker-Repo</string>
+                        </value>
+                    </member>
+                    <member>
+                        <name>description</name>
+                        <value>
+                            <string>&#60;h2 id="toc_0"&#62;push&#60;/h2&#62;
+
+                                &#60;pre&#62;&#60;code&#62;$ export DOCKER_OPTS+=&#38;quot; --insecure-registry
+                                lend-docker-test-local.repo.yrd.creditease.corp&#38;quot;
+                                $ docker login -u user -p passowrd lend-docker-test-local.repo.yrd.creditease.corp
+                                $ docker tag {imagID} lend-docker-test-local.repo.yrd.creditease.corp/lend/appname:v0.1
+                                $ docker push lend-docker-test-local.repo.yrd.creditease.corp/lend/appname:v0.1
+                                &#60;/code&#62;&#60;/pre&#62;
+
+                                &#60;h2 id="toc_1"&#62;pull&#60;/h2&#62;
+
+                                &#60;pre&#62;&#60;code&#62;$ export DOCKER_OPTS+=&#38;quot; --insecure-registry
+                                docker-test-virtual.repo.yrd.creditease.corp&#38;quot;
+                                $ docker login -u user -p passowrd docker-test-virtual.repo.yrd.creditease.corp
+                                $ docker pull docker-test-virtual.repo.yrd.creditease.corp/lend/appname:v0.1
+                                &#60;/code&#62;&#60;/pre&#62;
+
+                                &#60;pre&#62;&#60;code&#62;$ export DOCKER_OPTS+=&#38;quot; --insecure-registry
+                                lend-docker-dev-local.repo.yrd.creditease.corp&#38;quot;
+                                $ docker login -u user -p passowrd lend-docker-dev-local.repo.yrd.creditease.corp
+                                $ docker tag {imagID} lend-docker-dev-local.repo.yrd.creditease.corp/lend/appname:v0.1
+                                $ docker push lend-docker-dev-local.repo.yrd.creditease.corp/lend/appname:v0.1
+                                &#60;/code&#62;&#60;/pre&#62;
+
+                                &#60;p&#62;修改Docker默认存储位置的方法&#60;br/&#62;
+                                &#60;a href="https://blog.51cto.com/forangela/1949947"&#62;https://blog.51cto.com/forangela/1949947&#60;/a&#62;&#60;/p&#62;
+                            </string>
+                        </value>
+                    </member>
+                    <member>
+                        <name>mt_keywords</name>
+                        <value>
+                            <string>开普勒,Docker,Golang</string>
+                        </value>
+                    </member>
+                </struct>
+            </value>
+        </param>
+        <param>
+            <value>
+                <boolean>1</boolean>
+            </value>
+        </param>
+    </params>
+</methodCall>
+
+
+<!--<methodResponse>-->
+<!--<params>-->
+<!--    <param>-->
+<!--        <value>-->
+<!--            <boolean>$%#1#%$</boolean>-->
+<!--        </value>-->
+<!--    </param>-->
+<!--</params>-->
+<!--</methodResponse>-->

@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 <methodCall>
-    <methodName>blogger.getUsersBlogs</methodName>
+    <methodName>metaWeblog.getPost</methodName>
     <params>
         <param>
             <value>
-                <string></string>
+                <string>1000</string>
             </value>
         </param>
         <param>
             <value>
-                <string>hello</string>
+                <string>root</string>
             </value>
         </param>
         <param>
             <value>
-                <string>world</string>
+                <string>admin</string>
             </value>
         </param>
     </params>

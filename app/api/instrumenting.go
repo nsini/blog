@@ -20,11 +20,11 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Post(ctx context.Context, req postRequest) (rs map[string]interface{}, err error) {
+func (s *instrumentingService) Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "post").Add(1)
 		s.requestLatency.With("method", "post").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Service.Post(ctx, req)
+	return s.Service.Post(ctx, method, req)
 }

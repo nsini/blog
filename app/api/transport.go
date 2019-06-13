@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -33,7 +32,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	)
 
 	r := mux.NewRouter()
-	r.Handle("/api/post/release", post).Methods("POST")
+	r.Handle("/api/post/metaweblog", post).Methods("POST")
 	return r
 }
 
@@ -44,16 +43,23 @@ func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, err
 	}
 
+	fmt.Println(string(b))
+
 	var req postRequest
 
 	if err = xml.Unmarshal(b, &req); err != nil {
-		// todo err 加一层处理
 		return nil, err
 	}
-
-	bb, _ := xml.Marshal(req)
-
-	fmt.Println(string(bb))
+	switch req.MethodName {
+	case NewMediaObject.String():
+		{
+			var req newMediaObject
+			if err = xml.Unmarshal(b, &req); err != nil {
+				return nil, err
+			}
+			return req, nil
+		}
+	}
 
 	return req, nil
 }
@@ -67,7 +73,13 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 	// todo 返回xml数据
 
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+
+	//resp := response.(methodResponse)
+	//if len(resp.Params.Param.Value.Array.Data.Value) != 0 {
+	//	return xml.NewEncoder(w).Encode(response)
+	//}
+
+	return xml.NewEncoder(w).Encode(response)
 }
 
 type errorer interface {
