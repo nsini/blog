@@ -70,15 +70,7 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		return nil
 	}
 
-	// todo 返回xml数据
-
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-
-	//resp := response.(methodResponse)
-	//if len(resp.Params.Param.Value.Array.Data.Value) != 0 {
-	//	return xml.NewEncoder(w).Encode(response)
-	//}
-
 	return xml.NewEncoder(w).Encode(response)
 }
 

@@ -39,6 +39,7 @@ type PostRepository interface {
 	FindBy(order, by string, pageSize, offset int) ([]*Post, uint64, error)
 	Popular() (posts []*Post, err error)
 	SetReadNum(p *Post) error
+	Create(p Post) error
 }
 
 type post struct {
@@ -81,4 +82,8 @@ func (c *post) Popular() (posts []*Post, err error) {
 func (c *post) SetReadNum(p *Post) error {
 	p.ReadNum += 1
 	return c.db.Exec("UPDATE `posts` SET `read_num` = ?  WHERE `posts`.`deleted_at` IS NULL AND `posts`.`id` = ?", p.ReadNum, p.Model.ID).Error
+}
+
+func (c *post) Create(p Post) error {
+	return c.db.Create(&p).Error
 }

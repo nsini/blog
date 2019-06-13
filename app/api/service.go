@@ -26,6 +26,14 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 
 	_ = c.logger.Log("methodName", req.MethodName, "PostMethod", method, "username", req.Params.Param[1].Value.String, "password", req.Params.Param[2].Value.String)
 
+	//c.post.Create(repository.Post{
+	//
+	//})
+
+	for _, member := range req.Params.Param[3].Value.Struct.Member {
+		_ = c.logger.Log("member", member.Name)
+	}
+
 	rs.Params.Param.Value.String = strconv.Itoa(20051)
 
 	return
