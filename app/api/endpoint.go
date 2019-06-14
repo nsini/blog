@@ -43,7 +43,7 @@ type postRequest struct {
 							String string `xml:"string"`
 							Array  struct {
 								Text string `xml:",chardata"`
-								Data struct {
+								Data []struct {
 									Text  string `xml:",chardata"`
 									Value struct {
 										Text   string `xml:",chardata"`

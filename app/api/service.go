@@ -2,10 +2,15 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
+	"github.com/pkg/errors"
+	"gopkg.in/guregu/null.v3"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type Service interface {
@@ -22,6 +27,19 @@ type service struct {
 	config config.Config
 }
 
+type PostFields string
+
+const (
+	PostStatus      PostFields = "post_status"
+	PostType        PostFields = "post_type"
+	PostCategories  PostFields = "categories"
+	PostTitle       PostFields = "title"
+	PostDateCreated PostFields = "dateCreated"
+	PostWpSlug      PostFields = "wp_slug"
+	PostDescription PostFields = "description"
+	PostKeywords    PostFields = "mt_keywords"
+)
+
 func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error) {
 
 	_ = c.logger.Log("methodName", req.MethodName, "PostMethod", method, "username", req.Params.Param[1].Value.String, "password", req.Params.Param[2].Value.String)
@@ -30,9 +48,72 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 	//
 	//})
 
+	var isMarkdown bool
+	var postStatus, postType, postTitle, slug, description string
+	var categories []string
+	var keywords []string
+	var postDateCreated time.Time
+
 	for _, member := range req.Params.Param[3].Value.Struct.Member {
 		_ = c.logger.Log("member", member.Name)
+		switch PostFields(member.Name) {
+		case PostStatus:
+			postStatus = member.Value.String
+		case PostType:
+			postType = member.Value.String
+		case PostCategories:
+			for _, val := range member.Value.Array.Data {
+				categories = append(categories, val.Value.String)
+			}
+		case PostTitle:
+			postTitle = member.Value.String
+		case PostDateCreated:
+			load, _ := time.LoadLocation("Asia/Shanghai")
+			if postDateCreated, err = time.ParseInLocation("20060102T15:04:05Z", member.Value.DateTimeIso8601, load); err == nil {
+				_ = c.logger.Log("time", "Parse", "err", err)
+				postDateCreated = postDateCreated.Add(8 * 3600 * time.Second)
+			} else {
+				postDateCreated = time.Now()
+			}
+		case PostWpSlug:
+			slug = member.Value.String
+		case PostDescription:
+			description = member.Value.String
+		case PostKeywords:
+			keywords = strings.Split(member.Value.String, ",")
+		}
 	}
+
+	_ = c.logger.Log("req.Params.Param[4].Value.Boolean", req.Params.Param[4].Value.Boolean)
+
+	if boolean, _ := strconv.Atoi(req.Params.Param[4].Value.Boolean); boolean == 1 {
+		fmt.Println(boolean)
+		isMarkdown = true
+	}
+
+	markdown, _ := strconv.Atoi(req.Params.Param[4].Value.Boolean)
+
+	_ = c.logger.Log("postStatus", postStatus, "postType", postType, "categories", categories, "postDateCreated", postDateCreated.Format("2006-01-02 15:04:05"), "postTitle", postTitle, "slug", slug, "description", description, "keywords", keywords)
+
+	_ = c.logger.Log("isMarkdown", isMarkdown)
+
+	// todo 查询用户获取用户ID
+	userId := int64(1)
+
+	if err = c.post.Create(repository.Post{
+		Title:       postTitle,
+		Content:     description,
+		Description: null.StringFrom(description[:100]),
+		IsMarkdown:  null.IntFrom(int64(markdown)),
+		PushTime:    null.NewTime(time.Now(), true),
+		UserID:      null.IntFrom(userId),
+		Status:      1,
+		Action:      1,
+	}); err != nil {
+		return
+	}
+
+	return rs, errors.New("test")
 
 	rs.Params.Param.Value.String = strconv.Itoa(20051)
 

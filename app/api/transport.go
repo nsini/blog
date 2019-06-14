@@ -70,6 +70,8 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 		return nil
 	}
 
+	return nil
+
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	return xml.NewEncoder(w).Encode(response)
 }
