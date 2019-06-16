@@ -9,19 +9,18 @@ import (
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/nsini/blog/repository"
-	"github.com/nsini/blog/templates"
 	"io/ioutil"
 	"net/http"
 )
 
-var errBadRoute = errors.New("bad route")
+//var errBadRoute = errors.New("bad route")
 var ErrInvalidArgument = errors.New("invalid argument")
 
 func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	//ctx := context.Background()
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(encodeError),
+		kithttp.ServerErrorEncoder(encodeXmlError),
 	}
 
 	post := kithttp.NewServer(
@@ -66,11 +65,9 @@ func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) 
 
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
-		encodeError(ctx, e.error(), w)
+		encodeXmlError(ctx, e.error(), w)
 		return nil
 	}
-
-	return nil
 
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	return xml.NewEncoder(w).Encode(response)
@@ -80,19 +77,47 @@ type errorer interface {
 	error() error
 }
 
-func encodeError(ctx context.Context, err error, w http.ResponseWriter) {
-	// w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	switch err {
-	case repository.PostNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		ctx = context.WithValue(ctx, "method", "404")
-		_ = templates.RenderHtml(ctx, w, map[string]interface{}{})
-		return
-	case ErrInvalidArgument:
-		w.WriteHeader(http.StatusBadRequest)
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
+func encodeXmlError(ctx context.Context, err error, w http.ResponseWriter) {
+
+	type faultStruct struct {
+		Text   string    `xml:",chardata"`
+		Struct valStruct `xml:"struct"`
 	}
 
-	_, _ = w.Write([]byte(err.Error()))
+	type fault struct {
+		Text  string      `xml:",chardata"`
+		Value faultStruct `xml:"value"`
+	}
+
+	type errorResponse struct {
+		XMLName xml.Name `xml:"methodResponse"`
+		Text    string   `xml:",chardata"`
+		Fault   fault    `xml:"fault"`
+	}
+
+	var faultCode string
+
+	switch err {
+	case repository.PostNotFound:
+		faultCode = "404"
+	case ErrInvalidArgument:
+		faultCode = "401"
+	case NoPermission:
+		faultCode = "403"
+	default:
+		faultCode = "500"
+	}
+	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	_ = xml.NewEncoder(w).Encode(errorResponse{
+		Fault: fault{
+			Value: faultStruct{
+				Struct: valStruct{
+					Member: []member{
+						{Name: "faultString", Value: memberValue{String: faultCode}},
+						{Name: "faultCode", Value: memberValue{String: err.Error()}},
+					},
+				},
+			},
+		},
+	})
 }

@@ -1,92 +1,21 @@
-<methodResponse>
+<?xml version="1.0"?>
+<methodCall>
+    <methodName>metaWeblog.getCategories</methodName>
     <params>
         <param>
             <value>
-                <array>
-                    <data>
-                        <value>
-                            <struct>
-                                <member>
-                                    <name>categoryId</name>
-                                    <value>
-                                        <string>$%#1#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>parentId</name>
-                                    <value>
-                                        <string>$%#2#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>categoryName</name>
-                                    <value>
-                                        <string>$%#3#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>description</name>
-                                    <value>
-                                        <string>$%#4#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>httpUrl</name>
-                                    <value>
-                                        <string>$%#5#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>title</name>
-                                    <value>
-                                        <string>$%#6#%$</string>
-                                    </value>
-                                </member>
-                            </struct>
-                        </value>
-                        <value>
-                            <struct>
-                                <member>
-                                    <name>categoryId</name>
-                                    <value>
-                                        <string>$%#1#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>parentId</name>
-                                    <value>
-                                        <string>$%#2#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>categoryName</name>
-                                    <value>
-                                        <string>$%#3#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>description</name>
-                                    <value>
-                                        <string>$%#4#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>httpUrl</name>
-                                    <value>
-                                        <string>$%#5#%$</string>
-                                    </value>
-                                </member>
-                                <member>
-                                    <name>title</name>
-                                    <value>
-                                        <string>$%#6#%$</string>
-                                    </value>
-                                </member>
-                            </struct>
-                        </value>
-                    </data>
-                </array>
+                <string>1</string>
+            </value>
+        </param>
+        <param>
+            <value>
+                <string>hello</string>
+            </value>
+        </param>
+        <param>
+            <value>
+                <string>123456</string>
             </value>
         </param>
     </params>
-</methodResponse>
+</methodCall>

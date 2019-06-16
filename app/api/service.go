@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
@@ -13,10 +12,13 @@ import (
 	"time"
 )
 
+var PostNotFound = errors.New("post not found!")
+
 type Service interface {
+	Authentication(ctx context.Context, req postRequest) (rs getUsersBlogsResponse, err error)
 	Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error)
-	GetPost(ctx context.Context, id int64) (rs map[string]interface{}, err error)
-	GetCategories(ctx context.Context, req postRequest) (rs methodResponse, err error) // todo 需要调整 不应该让service返回xml
+	GetPost(ctx context.Context, id int64) (rs *getPostResponse, err error)
+	GetCategories(ctx context.Context, req postRequest) (rs *getCategoriesResponse, err error) // todo 需要调整 不应该让service返回xml
 }
 
 type service struct {
@@ -40,15 +42,15 @@ const (
 	PostKeywords    PostFields = "mt_keywords"
 )
 
+func (c *service) Authentication(ctx context.Context, req postRequest) (rs getUsersBlogsResponse, err error) {
+
+	return
+}
+
 func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error) {
 
 	_ = c.logger.Log("methodName", req.MethodName, "PostMethod", method, "username", req.Params.Param[1].Value.String, "password", req.Params.Param[2].Value.String)
 
-	//c.post.Create(repository.Post{
-	//
-	//})
-
-	var isMarkdown bool
 	var postStatus, postType, postTitle, slug, description string
 	var categories []string
 	var keywords []string
@@ -86,167 +88,163 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 
 	_ = c.logger.Log("req.Params.Param[4].Value.Boolean", req.Params.Param[4].Value.Boolean)
 
-	if boolean, _ := strconv.Atoi(req.Params.Param[4].Value.Boolean); boolean == 1 {
-		fmt.Println(boolean)
-		isMarkdown = true
-	}
+	publishStatus, _ := strconv.Atoi(req.Params.Param[4].Value.Boolean) // todo 1: 已发布，0: 草稿
 
-	markdown, _ := strconv.Atoi(req.Params.Param[4].Value.Boolean)
-
-	_ = c.logger.Log("postStatus", postStatus, "postType", postType, "categories", categories, "postDateCreated", postDateCreated.Format("2006-01-02 15:04:05"), "postTitle", postTitle, "slug", slug, "description", description, "keywords", keywords)
-
-	_ = c.logger.Log("isMarkdown", isMarkdown)
+	_ = c.logger.Log("postStatus", postStatus, "postType", postType, "categories", categories, "postDateCreated", postDateCreated.Format("2006-01-02 15:04:05"), "postTitle", postTitle, "slug", slug, "keywords", keywords)
 
 	// todo 查询用户获取用户ID
 	userId := int64(1)
 
-	if err = c.post.Create(repository.Post{
+	desc := []rune(description)
+	if len(desc) > 100 {
+		desc = desc[:100]
+	}
+
+	p := repository.Post{
 		Title:       postTitle,
 		Content:     description,
-		Description: null.StringFrom(description[:100]),
-		IsMarkdown:  null.IntFrom(int64(markdown)),
+		Description: null.StringFrom(string(desc)),
+		IsMarkdown:  null.IntFrom(int64(1)), // todo 想办法怎么验证一下
 		PushTime:    null.NewTime(time.Now(), true),
 		UserID:      null.IntFrom(userId),
-		Status:      1,
+		Status:      publishStatus,
 		Action:      1,
-	}); err != nil {
+		ReadNum:     1,
+	}
+
+	if err = c.post.Create(&p); err != nil {
 		return
 	}
 
-	return rs, errors.New("test")
-
-	rs.Params.Param.Value.String = strconv.Itoa(20051)
+	rs.Params.Param.Value.String = strconv.Itoa(int(p.Model.ID))
 
 	return
 }
 
-func (c *service) GetPost(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, err error) {
 
 	_ = c.logger.Log("postId", id)
 
-	return
+	post, err := c.post.Find(id)
+	if err != nil {
+		return nil, PostNotFound
+	}
+
+	var members []member
+
+	members = append(members, member{
+		Name: "userid",
+		Value: memberValue{
+			String: strconv.Itoa(int(post.UserID.Int64)),
+		},
+	}, member{
+		Name: "postid",
+		Value: memberValue{
+			String: strconv.Itoa(int(post.Model.ID)),
+		},
+	}, member{
+		Name: "description",
+		Value: memberValue{
+			String: post.Description.String,
+		},
+	}, member{
+		Name: "title",
+		Value: memberValue{
+			String: post.Title,
+		},
+	}, member{
+		Name: "link",
+		Value: memberValue{
+			String: "/post/" + strconv.Itoa(int(post.Model.ID)),
+		},
+	}, member{
+		Name: "mt_keywords",
+		Value: memberValue{
+			String: "存储,Golang",
+		},
+	}, member{
+		Name: "wp_slug",
+		Value: memberValue{
+			String: post.Slug.String,
+		},
+	}, member{
+		Name: "wp_author",
+		Value: memberValue{
+			String: "",
+		},
+	}, member{
+		Name: "wp_author_id",
+		Value: memberValue{
+			String: "",
+		},
+	}, member{
+		Name: "date_created_gmt",
+		Value: memberValue{
+			String: post.PushTime.Time.String(),
+		},
+	}, member{
+		Name: "post_status",
+		Value: memberValue{
+			String: strconv.Itoa(post.Status),
+		},
+	}, member{
+		Name: "categories",
+		//Value: memberValue{
+		//	Array: array{
+		//		Data: data{
+		//			Value: dataValue{
+		//				String: "技术,生活",
+		//			},
+		//		},
+		//	},
+		//},
+	})
+
+	resp := new(getPostResponse)
+
+	resp.Params.Param.Value.Struct.Member = members
+
+	return resp, nil
 }
 
-func (c *service) GetCategories(ctx context.Context, req postRequest) (rs methodResponse, err error) {
+func (c *service) GetCategories(ctx context.Context, req postRequest) (rs *getCategoriesResponse, err error) {
 
 	_ = c.logger.Log("methodName", req.MethodName)
 
-	var data []dataValue
-
-	var members, members0, members1 []member
-	members = append(members, member{
-		Name: "categoryId",
-		Value: value{
-			String: "1",
-		},
-	}, member{
-		Name: "parentId",
-		Value: value{
-			String: "0",
-		},
-	}, member{
-		Name: "categoryName",
-		Value: value{
-			String: "技术",
-		},
-	}, member{
-		Name: "description",
-		Value: value{
-			String: "技术类的文章",
-		},
-	}, member{
-		Name: "httpUrl",
-		Value: value{
-			String: "",
-		},
-	}, member{
-		Name: "title",
-		Value: value{
-			String: "技术",
-		},
-	})
-
-	members0 = append(members0, member{
-		Name: "categoryId",
-		Value: value{
-			String: "2",
-		},
-	}, member{
-		Name: "parentId",
-		Value: value{
-			String: "0",
-		},
-	}, member{
-		Name: "categoryName",
-		Value: value{
-			String: "生活",
-		},
-	}, member{
-		Name: "description",
-		Value: value{
-			String: "生活的文章",
-		},
-	}, member{
-		Name: "httpUrl",
-		Value: value{
-			String: "",
-		},
-	}, member{
-		Name: "title",
-		Value: value{
-			String: "生活",
-		},
-	})
-
-	members1 = append(members1, member{
-		Name: "categoryId",
-		Value: value{
-			String: "3",
-		},
-	}, member{
-		Name: "parentId",
-		Value: value{
-			String: "0",
-		},
-	}, member{
-		Name: "categoryName",
-		Value: value{
-			String: "旅游",
-		},
-	}, member{
-		Name: "description",
-		Value: value{
-			String: "旅游的文章",
-		},
-	}, member{
-		Name: "httpUrl",
-		Value: value{
-			String: "",
-		},
-	}, member{
-		Name: "title",
-		Value: value{
-			String: "旅游",
-		},
-	})
-
-	data = append(data, dataValue{
+	resp := new(getCategoriesResponse)
+	resp.Params.Param.Value.Array.Data.Value = append(resp.Params.Param.Value.Array.Data.Value, dataValue{
 		Struct: valStruct{
-			Member: members,
+			Member: []member{
+				{Name: "categoryId", Value: memberValue{String: "1"}},
+				{Name: "parentId", Value: memberValue{String: "0"}},
+				{Name: "categoryName", Value: memberValue{String: "技术"}},
+				{Name: "description", Value: memberValue{String: "技术类的文章"}},
+				{Name: "title", Value: memberValue{String: "技术文章"}},
+			},
 		},
 	}, dataValue{
 		Struct: valStruct{
-			Member: members0,
+			Member: []member{
+				{Name: "categoryId", Value: memberValue{String: "2"}},
+				{Name: "parentId", Value: memberValue{String: "0"}},
+				{Name: "categoryName", Value: memberValue{String: "生活"}},
+				{Name: "description", Value: memberValue{String: "生活类的文章"}},
+				{Name: "title", Value: memberValue{String: "生活文章"}},
+			},
 		},
 	}, dataValue{
 		Struct: valStruct{
-			Member: members1,
+			Member: []member{
+				{Name: "categoryId", Value: memberValue{String: "3"}},
+				{Name: "parentId", Value: memberValue{String: "0"}},
+				{Name: "categoryName", Value: memberValue{String: "旅游"}},
+				{Name: "description", Value: memberValue{String: "旅游的文章"}},
+				{Name: "title", Value: memberValue{String: "旅游文章"}},
+			},
 		},
 	})
 
-	rs.Params.Param.Value.Array.Data.Value = data
-
-	return
+	return resp, nil
 }
 
 func NewService(logger log.Logger, cf config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {

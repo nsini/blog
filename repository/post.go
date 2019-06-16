@@ -5,15 +5,15 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"gopkg.in/guregu/null.v3"
-	"time"
 )
 
 type Post struct {
 	gorm.Model
-	Action      int         `gorm:"column:action"`
-	Content     string      `gorm:"column:content"`
-	CreatedAt   time.Time   `gorm:"column:created_at"`
+	Action  int    `gorm:"column:action"`
+	Content string `gorm:"column:content"`
+	//CreatedAt   time.Time   `gorm:"column:created_at"`
 	Description null.String `gorm:"column:description"`
+	Slug        null.String `gorm:"column:slug"`
 	ID          int64       `gorm:"column:id;primary_key"`
 	IsMarkdown  null.Int    `gorm:"column:is_markdown"`
 	PushTime    null.Time   `gorm:"column:push_time"`
@@ -23,7 +23,7 @@ type Post struct {
 	Status      int         `gorm:"column:status"`
 	Title       string      `gorm:"column:title"`
 	UserID      null.Int    `gorm:"column:user_id"`
-	User
+	User        User
 }
 
 var (
@@ -39,7 +39,7 @@ type PostRepository interface {
 	FindBy(order, by string, pageSize, offset int) ([]*Post, uint64, error)
 	Popular() (posts []*Post, err error)
 	SetReadNum(p *Post) error
-	Create(p Post) error
+	Create(p *Post) error
 }
 
 type post struct {
@@ -84,6 +84,9 @@ func (c *post) SetReadNum(p *Post) error {
 	return c.db.Exec("UPDATE `posts` SET `read_num` = ?  WHERE `posts`.`deleted_at` IS NULL AND `posts`.`id` = ?", p.ReadNum, p.Model.ID).Error
 }
 
-func (c *post) Create(p Post) error {
-	return c.db.Create(&p).Error
+func (c *post) Create(p *Post) error {
+	if err := c.db.Save(p).Error; err != nil {
+		return err
+	}
+	return nil
 }
