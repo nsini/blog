@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v3"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +21,7 @@ type Service interface {
 	Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error)
 	GetPost(ctx context.Context, id int64) (rs *getPostResponse, err error)
 	GetCategories(ctx context.Context, req postRequest) (rs *getCategoriesResponse, err error) // todo 需要调整 不应该让service返回xml
+	MediaObject(ctx context.Context, req postRequest)
 }
 
 type service struct {
@@ -40,6 +43,10 @@ const (
 	PostWpSlug      PostFields = "wp_slug"
 	PostDescription PostFields = "description"
 	PostKeywords    PostFields = "mt_keywords"
+	MediaOverwrite  PostFields = "overwrite"
+	MediaBits       PostFields = "bits"
+	MediaName       PostFields = "name"
+	MediaType       PostFields = "type"
 )
 
 func (c *service) Authentication(ctx context.Context, req postRequest) (rs getUsersBlogsResponse, err error) {
@@ -47,6 +54,46 @@ func (c *service) Authentication(ctx context.Context, req postRequest) (rs getUs
 	return
 }
 
+/**
+ * @Title 上传流媒体类型的文件
+ */
+func (c *service) MediaObject(ctx context.Context, req postRequest) {
+	var overwrite bool
+	var bits, mediaName, mediaType string
+	for _, val := range req.Params.Param[3].Value.Struct.Member {
+		_ = c.logger.Log("val", val.Name)
+		switch PostFields(val.Name) {
+		case MediaOverwrite:
+			overwrite, _ = strconv.ParseBool(val.Value.Boolean)
+		case MediaBits:
+			bits = val.Value.Base64
+		case MediaName:
+			mediaName = val.Value.String
+		case MediaType:
+			mediaType = val.Value.String
+		}
+	}
+
+	bits = strings.TrimSpace(strings.Trim(bits, "\n"))
+	bits = strings.Replace(bits, " ", "", -1)
+	dist, err := base64.StdEncoding.DecodeString(bits)
+
+	if err != nil {
+		_ = c.logger.Log("base64", "DecodeString", "err", err.Error())
+		return
+	}
+
+	if err = ioutil.WriteFile(mediaName, dist, 0666); err != nil {
+		_ = c.logger.Log("ioutil", "WriteFile", "err", err.Error())
+		return
+	}
+
+	_ = c.logger.Log("overwrite", overwrite, "bits", "", "mediaName", mediaName, "mediaType", mediaType)
+}
+
+/**
+ * @Title 发布内容
+ */
 func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error) {
 
 	_ = c.logger.Log("methodName", req.MethodName, "PostMethod", method, "username", req.Params.Param[1].Value.String, "password", req.Params.Param[2].Value.String)
@@ -121,6 +168,9 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 	return
 }
 
+/**
+ * @Title 获取文章
+ */
 func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, err error) {
 
 	_ = c.logger.Log("postId", id)
@@ -207,6 +257,9 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	return resp, nil
 }
 
+/**
+ * @Title 获取分类列表
+ */
 func (c *service) GetCategories(ctx context.Context, req postRequest) (rs *getCategoriesResponse, err error) {
 
 	_ = c.logger.Log("methodName", req.MethodName)

@@ -52,7 +52,7 @@ func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) 
 	switch req.MethodName {
 	case NewMediaObject.String():
 		{
-			var req newMediaObject
+			var req postRequest
 			if err = xml.Unmarshal(b, &req); err != nil {
 				return nil, err
 			}

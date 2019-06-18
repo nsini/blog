@@ -94,7 +94,48 @@ type getPostResponse struct {
 	} `xml:"params"`
 }
 
-type newMediaObject struct {
+type postRequest struct {
+	XMLName    xml.Name `xml:"methodCall"`
+	Text       string   `xml:",chardata"`
+	MethodName string   `xml:"methodName"`
+	Params     struct {
+		Text  string `xml:",chardata"`
+		Param []struct {
+			Text  string `xml:",chardata"`
+			Value struct {
+				Text   string `xml:",chardata"`
+				String string `xml:"string"`
+				Struct struct {
+					Text   string `xml:",chardata"`
+					Member []struct {
+						Text  string `xml:",chardata"`
+						Name  string `xml:"name"`
+						Value struct {
+							Text    string `xml:",chardata"`
+							String  string `xml:"string"`
+							Boolean string `xml:"boolean"`
+							Base64  string `xml:"base64"`
+							Array   struct {
+								Text string `xml:",chardata"`
+								Data []struct {
+									Text  string `xml:",chardata"`
+									Value struct {
+										Text   string `xml:",chardata"`
+										String string `xml:"string"`
+									} `xml:"value"`
+								} `xml:"data"`
+							} `xml:"array"`
+							DateTimeIso8601 string `xml:"dateTime.iso8601"`
+						} `xml:"value"`
+					} `xml:"member"`
+				} `xml:"struct"`
+				Boolean string `xml:"boolean"`
+			} `xml:"value"`
+		} `xml:"param"`
+	} `xml:"params"`
+}
+
+type mediaRequest struct {
 	XMLName    xml.Name `xml:"methodCall"`
 	Text       string   `xml:",chardata"`
 	MethodName string   `xml:"methodName"`
