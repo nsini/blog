@@ -2,13 +2,19 @@ package api
 
 import (
 	"context"
+	"crypto/md5"
 	"encoding/base64"
+	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/config"
 	"github.com/nsini/blog/repository"
+	"github.com/nsini/blog/tools"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v3"
+	"io"
 	"io/ioutil"
+	"mime"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -68,7 +74,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 		case MediaBits:
 			bits = val.Value.Base64
 		case MediaName:
-			mediaName = val.Value.String
+			mediaName = strings.TrimSpace(strings.ToLower(val.Value.String))
 		case MediaType:
 			mediaType = val.Value.String
 		}
@@ -83,12 +89,65 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 		return
 	}
 
-	if err = ioutil.WriteFile(mediaName, dist, 0666); err != nil {
+	if err = ioutil.WriteFile("/tmp/"+mediaName, dist, 0666); err != nil {
 		_ = c.logger.Log("ioutil", "WriteFile", "err", err.Error())
 		return
 	}
 
-	_ = c.logger.Log("overwrite", overwrite, "bits", "", "mediaName", mediaName, "mediaType", mediaType)
+	// 先存，再验证，失败再删除
+	f, err := os.Open("/tmp/" + mediaName)
+	if err != nil {
+		_ = c.logger.Log("os", "Open", "err", err.Error())
+		return
+	}
+	defer func() {
+		if err = f.Close(); err != nil {
+			_ = c.logger.Log("f", "Close", "err", err.Error())
+		}
+	}()
+
+	md5h := md5.New()
+	if _, err = io.Copy(md5h, f); err != nil {
+		_ = c.logger.Log("io", "Copy", "err", err.Error())
+		return
+	}
+
+	//defer func() {
+	//	if err = os.Remove("/tmp/"+mediaName); err != nil {
+	//		_ = c.logger.Log("os", "Remove", "err", err.Error())
+	//	}
+	//}()
+
+	fileSha := fmt.Sprintf("%x", md5h.Sum([]byte("")))
+
+	// todo 进行数据md5值验证
+
+	filePath := c.config.Get(config.ImageFilePath) + time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
+	if !tools.PathExist(filePath) {
+		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
+			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
+			return
+		}
+	}
+
+	var extName = ".jpg"
+	if exts, err := mime.ExtensionsByType(mediaType); err == nil {
+		extName = exts[0]
+	}
+
+	fileName := fileSha + extName
+	fileFullPath := filePath + fileName
+
+	if err = os.Rename("/tmp/"+mediaName, fileFullPath); err != nil {
+		_ = c.logger.Log("os", "Rename", "err", err.Error())
+		return
+	}
+
+	// todo 存入数据库
+
+	// todo 返回图片的xml response
+
+	_ = c.logger.Log("overwrite", overwrite, "bits", "", "mediaName", mediaName, "mediaType", mediaType, "fileSha", fileSha, "fileName", fileName)
 }
 
 /**

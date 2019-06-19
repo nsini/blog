@@ -4,6 +4,11 @@ type Config interface {
 	Get(key string) string
 }
 
+const (
+	ImageFilePath = "image_file_path"
+	ImageDomain   = "image_domain"
+)
+
 type config struct {
 }
 
@@ -15,9 +20,10 @@ func NewConfig(path string) Config {
 func (c *config) Get(key string) string {
 
 	switch key {
-	case "image-domain":
+	case "image_domain":
 		return "http://source.lattecake.com/"
-
+	case "image_file_path":
+		return "./image/"
 	}
 
 	return ""
