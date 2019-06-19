@@ -112,6 +112,11 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 		return
 	}
 
+	var fileSize int64
+	if fileInfo, err := os.Stat("/tmp/" + mediaName); err == nil {
+		fileSize = fileInfo.Size()
+	}
+
 	//defer func() {
 	//	if err = os.Remove("/tmp/"+mediaName); err != nil {
 	//		_ = c.logger.Log("os", "Remove", "err", err.Error())
@@ -120,9 +125,14 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 
 	fileSha := fmt.Sprintf("%x", md5h.Sum([]byte("")))
 
-	// todo 进行数据md5值验证
+	// 进行数据md5值验证 需要不需要返回地址呢？
+	if c.image.ExistsImageByMd5(fileSha) {
+		_ = c.logger.Log("c.image", "ExistsImageByMd5", "err", "file is exists.")
+		return
+	}
 
-	filePath := c.config.Get(config.ImageFilePath) + time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
+	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
+	filePath := c.config.Get(config.ImageFilePath) + simPath
 	if !tools.PathExist(filePath) {
 		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
 			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
@@ -135,7 +145,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 		extName = exts[0]
 	}
 
-	fileName := fileSha + extName
+	fileName := time.Now().Format("20060102") + "-" + fileSha + extName
 	fileFullPath := filePath + fileName
 
 	if err = os.Rename("/tmp/"+mediaName, fileFullPath); err != nil {
@@ -143,7 +153,21 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 		return
 	}
 
-	// todo 存入数据库
+	// 存入数据库
+	if err = c.image.AddImage(&repository.Image{
+		ImageName: fileName,
+		Extension: null.StringFrom(extName),
+		ImagePath: null.StringFrom(simPath + fileName),
+		RealPath:  null.StringFrom(fileFullPath),
+		//ImageTime:          null.NewTime(time.Now(), false),
+		ImageStatus:        null.IntFrom(0),
+		ImageSize:          null.StringFrom(strconv.Itoa(int(fileSize))),
+		Md5:                null.StringFrom(fileSha),
+		ClientOriginalMame: null.StringFrom(mediaName),
+	}); err != nil {
+		_ = c.logger.Log("c.image", "AddImage", "err", err.Error())
+		return
+	}
 
 	// todo 返回图片的xml response
 

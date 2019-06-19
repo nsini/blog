@@ -8,12 +8,12 @@ import (
 
 type Image struct {
 	gorm.Model
-	ID                 int64       `gorm:"column:id;primary_key" json:"id"`
-	ImageName          string      `gorm:"column:image_name" json:"image_name"`
-	Extension          null.String `gorm:"column:extension" json:"extension"`
-	ImagePath          null.String `gorm:"column:image_path" json:"image_path"`
-	RealPath           null.String `gorm:"column:real_path" json:"real_path"`
-	ImageTime          null.Time   `gorm:"column:image_time" json:"image_time"`
+	ID        int64       `gorm:"column:id;primary_key" json:"id"`
+	ImageName string      `gorm:"column:image_name" json:"image_name"`
+	Extension null.String `gorm:"column:extension" json:"extension"`
+	ImagePath null.String `gorm:"column:image_path" json:"image_path"`
+	RealPath  null.String `gorm:"column:real_path" json:"real_path"`
+	//ImageTime          null.Time   `gorm:"column:image_time" json:"image_time"`
 	ImageStatus        null.Int    `gorm:"column:image_status" json:"image_status"`
 	ImageSize          null.String `gorm:"column:image_size" json:"image_size"`
 	Md5                null.String `gorm:"column:md5" json:"md5"`
@@ -32,6 +32,8 @@ func (p *Image) TableName() string {
 type ImageRepository interface {
 	FindByPostIdLast(postId int64) (res *Image, err error)
 	FindByPostIds(ids []uint) (res []*Image, err error)
+	AddImage(img *Image) error
+	ExistsImageByMd5(val string) bool
 }
 
 type image struct {
@@ -56,4 +58,19 @@ func (c *image) FindByPostIds(ids []uint) (res []*Image, err error) {
 		return
 	}
 	return
+}
+
+func (c *image) AddImage(img *Image) error {
+	return c.db.Save(img).Error
+}
+
+func (c *image) ExistsImageByMd5(val string) bool {
+	var img Image
+	if err := c.db.Where("md5 = ?", val).First(&img).Error; err != nil {
+		return false
+	}
+	if img.Md5.String != "" {
+		return true
+	}
+	return false
 }
