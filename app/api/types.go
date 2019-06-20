@@ -135,7 +135,7 @@ type postRequest struct {
 	} `xml:"params"`
 }
 
-type mediaRequest struct {
+type mediaResponse struct {
 	XMLName    xml.Name `xml:"methodCall"`
 	Text       string   `xml:",chardata"`
 	MethodName string   `xml:"methodName"`

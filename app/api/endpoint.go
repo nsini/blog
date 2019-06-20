@@ -67,7 +67,7 @@ func makePostEndpoint(s Service) endpoint.Endpoint {
 			rs, err := s.Post(ctx, PostCreate, req)
 			return rs, err
 		case NewMediaObject:
-			s.MediaObject(ctx, req)
+			resp, err = s.MediaObject(ctx, req)
 		case GetPost:
 			{
 				postId, _ := strconv.Atoi(req.Params.Param[0].Value.String)

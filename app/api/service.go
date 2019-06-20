@@ -27,7 +27,7 @@ type Service interface {
 	Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error)
 	GetPost(ctx context.Context, id int64) (rs *getPostResponse, err error)
 	GetCategories(ctx context.Context, req postRequest) (rs *getCategoriesResponse, err error) // todo 需要调整 不应该让service返回xml
-	MediaObject(ctx context.Context, req postRequest)
+	MediaObject(ctx context.Context, req postRequest) (rs *getPostResponse, err error)
 }
 
 type service struct {
@@ -63,11 +63,10 @@ func (c *service) Authentication(ctx context.Context, req postRequest) (rs getUs
 /**
  * @Title 上传流媒体类型的文件
  */
-func (c *service) MediaObject(ctx context.Context, req postRequest) {
+func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPostResponse, err error) {
 	var overwrite bool
 	var bits, mediaName, mediaType string
 	for _, val := range req.Params.Param[3].Value.Struct.Member {
-		_ = c.logger.Log("val", val.Name)
 		switch PostFields(val.Name) {
 		case MediaOverwrite:
 			overwrite, _ = strconv.ParseBool(val.Value.Boolean)
@@ -125,7 +124,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 
 	fileSha := fmt.Sprintf("%x", md5h.Sum([]byte("")))
 
-	// 进行数据md5值验证 需要不需要返回地址呢？
+	// todo 进行数据md5值验证 需要不需要返回地址呢？
 	if c.image.ExistsImageByMd5(fileSha) {
 		_ = c.logger.Log("c.image", "ExistsImageByMd5", "err", "file is exists.")
 		return
@@ -172,6 +171,35 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 	// todo 返回图片的xml response
 
 	_ = c.logger.Log("overwrite", overwrite, "bits", "", "mediaName", mediaName, "mediaType", mediaType, "fileSha", fileSha, "fileName", fileName)
+
+	var members []member
+
+	members = append(members, member{
+		Name: "id",
+		Value: memberValue{
+			String: "0",
+		},
+	}, member{
+		Name: "file",
+		Value: memberValue{
+			String: mediaName,
+		},
+	}, member{
+		Name: "url",
+		Value: memberValue{
+			String: "http://source.lattecake.com/",
+		},
+	}, member{
+		Name: "type",
+		Value: memberValue{
+			String: "",
+		},
+	})
+
+	resp := getPostResponse{}
+	resp.Params.Param.Value.Struct.Member = members
+
+	return &resp, nil
 }
 
 /**

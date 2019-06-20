@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/guregu/null.v3"
 )
@@ -21,9 +20,9 @@ type Image struct {
 	PostID             int64       `gorm:"column:post_id" json:"post_id"`
 }
 
-var (
-	ImageNotFound = errors.New("post not found!")
-)
+//var (
+//ImageNotFound = errors.New("Image not found!")
+//)
 
 func (p *Image) TableName() string {
 	return "images"
