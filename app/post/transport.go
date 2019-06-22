@@ -46,7 +46,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	)
 
 	r := mux.NewRouter()
-	r.Handle("/post/", list).Methods("GET")
+	r.Handle("/post", list).Methods("GET")
 	r.Handle("/post/popular", popular).Methods("GET")
 	r.Handle("/post/{id:[0-9]+}", detail).Methods("GET")
 	return r

@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/kit/metrics/prometheus"
 	"github.com/nsini/blog/app/about"
 	"github.com/nsini/blog/app/api"
+	"github.com/nsini/blog/app/board"
 	"github.com/nsini/blog/app/home"
 	"github.com/nsini/blog/app/post"
 	"github.com/nsini/blog/config"
@@ -63,6 +64,7 @@ func main() {
 	var aboutMe about.Service
 	var homeSvc home.Service
 	var apiSvc api.Service
+	var boardSvc board.Service
 	// post
 	ps = post.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
 	ps = post.NewLoggingService(logger, ps)
@@ -94,13 +96,18 @@ func main() {
 	aboutMe = about.NewService(logger)
 	aboutMe = about.NewLoggingService(logger, aboutMe)
 
+	// board
+	boardSvc = board.NewService(logger)
+
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/post", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
 	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger))
+	mux.Handle("/board", board.MakeHandler(boardSvc, httpLogger))
 	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))
 
 	http.Handle("/metrics", promhttp.Handler())
