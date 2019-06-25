@@ -1,30 +1,28 @@
 package config
 
-type Config interface {
-	Get(key string) string
-}
+import "github.com/Unknwon/goconfig"
 
 const (
+	SectionServer = "server"
 	ImageFilePath = "image_file_path"
 	ImageDomain   = "image_domain"
 )
 
-type config struct {
+type Config struct {
+	*goconfig.ConfigFile
 }
 
-func NewConfig(path string) Config {
+func NewConfig(path string) (*Config, error) {
 	// 处理配置文件
-	return &config{}
+
+	cfg, err := goconfig.LoadConfigFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return &Config{cfg}, nil
 }
 
-func (c *config) Get(key string) string {
-
-	switch key {
-	case "image_domain":
-		return "http://source.lattecake.com/"
-	case "image_file_path":
-		return "./image/"
-	}
-
-	return ""
+func (c *Config) GetString(section, key string) string {
+	val, _ := c.GetValue(section, key)
+	return val
 }

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
+	"github.com/nsini/blog/src/cmd"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/mysql"
 	"github.com/nsini/blog/src/pkg/about"
@@ -15,6 +15,7 @@ import (
 	"github.com/nsini/blog/src/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/spf13/cobra"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,22 +23,65 @@ import (
 )
 
 const (
-	defaultPort = "8080"
+	DefaultHttpPort   = ":8080"
+	DefaultConfigPath = "./app.cfg"
+	DefaultStaticPath = "./static/"
 )
+
+var (
+	httpAddr   = envString("HTTP_ADDR", DefaultHttpPort)
+	configPath = envString("CONFIG_PATH", DefaultConfigPath)
+	staticPath = envString("STATIC_PATH", DefaultStaticPath)
+
+	rootCmd = &cobra.Command{
+		Use:               "server",
+		Short:             "开普勒平台服务端",
+		SilenceErrors:     true,
+		DisableAutoGenTag: true,
+		Long: `# 开普勒平台服务端
+您可以通过改命令来启动您的服务
+可用的配置类型：
+[start]
+有关开普勒平台的相关概述，请参阅 https://github.com/nsini/kplcloud
+`,
+	}
+
+	startCmd = &cobra.Command{
+		Use:   "start",
+		Short: "启动服务",
+		Example: `## 启动命令
+blog start -p :8080 -c ./app.cfg
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			run()
+			return nil
+		},
+	}
+)
+
+func init() {
+
+	rootCmd.PersistentFlags().StringVarP(&httpAddr, "http.port", "p", DefaultHttpPort, "服务启动的端口: :8080")
+	rootCmd.PersistentFlags().StringVarP(&configPath, "config.path", "c", DefaultConfigPath, "配置文件路径: ./app.yaml")
+	startCmd.PersistentFlags().StringVarP(&staticPath, "static.path", "s", DefaultStaticPath, "静态文件目录: ./static/")
+
+	cmd.AddFlags(rootCmd)
+	rootCmd.AddCommand(startCmd)
+}
 
 func main() {
 
-	var (
-		addr = envString("PORT", defaultPort)
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(-1)
+	}
+}
 
-		httpAddr   = flag.String("http.addr", ":"+addr, "HTTP listen address")
-		configAddr = flag.String("config.addr", "", "config file")
-		//ctx      = context.Background()
-	)
+func run() {
 
-	flag.Parse()
-
-	cf := config.NewConfig(*configAddr)
+	cf, err := config.NewConfig(configPath)
+	if err != nil {
+		panic(err)
+	}
 
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.StdlibWriter{})
@@ -117,8 +161,8 @@ func main() {
 
 	errs := make(chan error, 2)
 	go func() {
-		_ = logger.Log("transport", "http", "address", *httpAddr, "msg", "listening")
-		errs <- http.ListenAndServe(*httpAddr, nil)
+		_ = logger.Log("transport", "http", "address", httpAddr, "msg", "listening")
+		errs <- http.ListenAndServe(httpAddr, nil)
 	}()
 	go func() {
 		c := make(chan os.Signal)

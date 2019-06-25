@@ -35,7 +35,7 @@ type service struct {
 	user   repository.UserRepository
 	image  repository.ImageRepository
 	logger log.Logger
-	config config.Config
+	config *config.Config
 }
 
 type PostFields string
@@ -132,7 +132,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 	}
 
 	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
-	filePath := c.config.Get(config.ImageFilePath) + simPath
+	filePath := c.config.GetString(config.SectionServer, config.ImageFilePath) + simPath
 	if !tools.PathExist(filePath) {
 		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
 			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
@@ -383,7 +383,7 @@ func (c *service) GetCategories(ctx context.Context, req postRequest) (rs *getCa
 	return resp, nil
 }
 
-func NewService(logger log.Logger, cf config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
+func NewService(logger log.Logger, cf *config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
 	return &service{
 		post:   post,
 		user:   user,

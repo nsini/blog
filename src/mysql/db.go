@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func NewDb(logger log.Logger, cf config.Config) (*gorm.DB, error) {
+func NewDb(logger log.Logger, cf *config.Config) (*gorm.DB, error) {
 	dbUrl := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local&timeout=20m&collation=utf8mb4_unicode_ci", "root", "admin", "127.0.0.1", "33306", "nsini-blog")
 	db, err := gorm.Open("mysql", dbUrl)
 	if err != nil {
