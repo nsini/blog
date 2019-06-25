@@ -8,7 +8,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
-	"github.com/nsini/blog/src/tools"
+	"github.com/nsini/blog/src/util"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v3"
 	"io"
@@ -133,7 +133,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 
 	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
 	filePath := c.config.GetString(config.SectionServer, config.ImageFilePath) + simPath
-	if !tools.PathExist(filePath) {
+	if !util.PathExist(filePath) {
 		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
 			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
 			return
