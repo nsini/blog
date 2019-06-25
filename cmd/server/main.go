@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics/prometheus"
-	"github.com/nsini/blog/app/about"
-	"github.com/nsini/blog/app/api"
-	"github.com/nsini/blog/app/board"
-	"github.com/nsini/blog/app/home"
-	"github.com/nsini/blog/app/post"
-	"github.com/nsini/blog/config"
-	"github.com/nsini/blog/repository"
+	"github.com/nsini/blog/src/config"
+	"github.com/nsini/blog/src/mysql"
+	"github.com/nsini/blog/src/pkg/about"
+	"github.com/nsini/blog/src/pkg/api"
+	"github.com/nsini/blog/src/pkg/board"
+	"github.com/nsini/blog/src/pkg/home"
+	"github.com/nsini/blog/src/pkg/post"
+	"github.com/nsini/blog/src/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -42,7 +43,7 @@ func main() {
 	logger = log.NewLogfmtLogger(log.StdlibWriter{})
 	logger = log.With(logger, "caller", log.DefaultCaller)
 
-	db, err := repository.NewDb(logger, cf)
+	db, err := mysql.NewDb(logger, cf)
 	if err != nil {
 		_ = logger.Log("db", "connect", "err", err)
 		panic(err)

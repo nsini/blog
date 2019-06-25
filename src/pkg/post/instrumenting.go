@@ -20,13 +20,13 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+func (s *instrumentingService) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "detail").Add(1)
 		s.requestLatency.With("method", "detail").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Service.Detail(ctx, id)
+	return s.Get(ctx, id)
 }
 
 func (s *instrumentingService) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
@@ -35,5 +35,5 @@ func (s *instrumentingService) List(ctx context.Context, order, by string, pageS
 		s.requestLatency.With("method", "list").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Service.List(ctx, order, by, pageSize, offset)
+	return s.List(ctx, order, by, pageSize, offset)
 }

@@ -2,10 +2,10 @@ package post
 
 import (
 	"context"
+	"errors"
 	"github.com/go-kit/kit/log"
-	"github.com/nsini/blog/config"
-	"github.com/nsini/blog/repository"
-	"github.com/pkg/errors"
+	"github.com/nsini/blog/src/config"
+	"github.com/nsini/blog/src/repository"
 	"strconv"
 	"strings"
 )
@@ -13,7 +13,7 @@ import (
 var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
-	Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error)
+	Get(ctx context.Context, id int64) (rs map[string]interface{}, err error)
 	List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
 }
@@ -29,7 +29,8 @@ type service struct {
 /**
  * @Title 详情页
  */
-func (c *service) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
+
 	detail, err := c.post.Find(id)
 	if err != nil {
 		return
@@ -161,7 +162,7 @@ func imageUrl(path, imageDomain string) string {
 
 func NewService(logger log.Logger, cf config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
 	return &service{
-		post:   post,
+		//post:   post,
 		user:   user,
 		image:  image,
 		logger: logger,

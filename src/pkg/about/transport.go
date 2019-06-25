@@ -1,12 +1,12 @@
-package home
+package about
 
 import (
 	"context"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/nsini/blog/repository"
-	"github.com/nsini/blog/templates"
+	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/templates"
 	"net/http"
 )
 
@@ -17,32 +17,32 @@ func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 
-	index := kithttp.NewServer(
-		makeIndexEndpoint(svc),
-		decodeIndexRequest,
-		encodeIndexResponse,
+	about := kithttp.NewServer(
+		makeAboutEndpoint(svc),
+		decodeAboutRequest,
+		encodeAboutResponse,
 		opts...,
 	)
 
 	r := mux.NewRouter()
-	r.Handle("/", index).Methods("GET")
+	r.Handle("/about", about).Methods("GET")
 	return r
 }
 
-func decodeIndexRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeAboutRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
 }
 
-func encodeIndexResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeAboutResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		encodeError(ctx, e.error(), w)
 		return nil
 	}
 
-	ctx = context.WithValue(ctx, "method", "index")
+	ctx = context.WithValue(ctx, "method", "about")
 
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"title": "index",
+		"title": "about",
 	})
 }
 

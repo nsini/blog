@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"gopkg.in/guregu/null.v3"
 )
 

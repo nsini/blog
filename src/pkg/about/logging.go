@@ -1,4 +1,4 @@
-package api
+package about
 
 import (
 	"context"
@@ -15,14 +15,14 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) Post(ctx context.Context, method PostMethod, req postRequest) (rs newPostResponse, err error) {
+func (s *loggingService) Detail(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
-			"method", "post",
-			"action", method,
+			"method", "about",
+			"id", id,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Post(ctx, method, req)
+	return s.About(ctx)
 }

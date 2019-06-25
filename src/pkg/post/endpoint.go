@@ -40,11 +40,13 @@ type listResponse struct {
 	Err       error                    `json:"error,omitempty"`
 }
 
-func makeDetailEndpoint(s Service) endpoint.Endpoint {
+func (r listResponse) error() error { return r.Err }
+
+func makeGetEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(postRequest)
-		rs, err := s.Detail(ctx, req.Id)
-		return postResponse{rs, err}, err
+		rs, err := s.Get(ctx, req.Id)
+		return postResponse{rs, err}, nil
 	}
 }
 

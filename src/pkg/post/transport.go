@@ -8,8 +8,8 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/nsini/blog/repository"
-	"github.com/nsini/blog/templates"
+	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/templates"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,7 +25,7 @@ func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
 	}
 
 	detail := kithttp.NewServer(
-		makeDetailEndpoint(ps),
+		makeGetEndpoint(ps),
 		decodeDetailRequest,
 		encodeDetailResponse,
 		opts...,
@@ -71,6 +71,7 @@ func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error
 	order := r.URL.Query().Get("order")
 	by := r.URL.Query().Get("by")
 	offset := r.URL.Query().Get("offset")
+
 	if size == "" {
 		size = "10"
 	}

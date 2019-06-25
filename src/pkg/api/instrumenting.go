@@ -26,5 +26,5 @@ func (s *instrumentingService) Post(ctx context.Context, method PostMethod, req 
 		s.requestLatency.With("method", "post").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Service.Post(ctx, method, req)
+	return s.Post(ctx, method, req)
 }

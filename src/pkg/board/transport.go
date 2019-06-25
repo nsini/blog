@@ -5,8 +5,8 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/nsini/blog/repository"
-	"github.com/nsini/blog/templates"
+	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/templates"
 	"net/http"
 )
 
