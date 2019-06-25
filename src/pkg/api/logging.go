@@ -24,5 +24,5 @@ func (s *loggingService) Post(ctx context.Context, method PostMethod, req postRe
 			"err", err,
 		)
 	}(time.Now())
-	return s.Post(ctx, method, req)
+	return s.Service.Post(ctx, method, req)
 }

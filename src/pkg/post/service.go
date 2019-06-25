@@ -30,7 +30,6 @@ type service struct {
  * @Title 详情页
  */
 func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
-
 	detail, err := c.post.Find(id)
 	if err != nil {
 		return
@@ -162,7 +161,7 @@ func imageUrl(path, imageDomain string) string {
 
 func NewService(logger log.Logger, cf config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
 	return &service{
-		//post:   post,
+		post:   post,
 		user:   user,
 		image:  image,
 		logger: logger,

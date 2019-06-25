@@ -18,13 +18,13 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 func (s *loggingService) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
-			"method", "detail",
+			"method", "get",
 			"id", id,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Get(ctx, id)
+	return s.Service.Get(ctx, id)
 }
 
 func (s *loggingService) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
@@ -39,7 +39,7 @@ func (s *loggingService) List(ctx context.Context, order, by string, pageSize, o
 			"err", err,
 		)
 	}(time.Now())
-	return s.List(ctx, order, by, pageSize, offset)
+	return s.Service.List(ctx, order, by, pageSize, offset)
 }
 
 func (s *loggingService) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
@@ -50,5 +50,5 @@ func (s *loggingService) Popular(ctx context.Context) (rs []map[string]interface
 			"err", err,
 		)
 	}(time.Now())
-	return s.Popular(ctx)
+	return s.Service.Popular(ctx)
 }

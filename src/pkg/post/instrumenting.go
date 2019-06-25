@@ -26,7 +26,7 @@ func (s *instrumentingService) Get(ctx context.Context, id int64) (rs map[string
 		s.requestLatency.With("method", "detail").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.Get(ctx, id)
+	return s.Service.Get(ctx, id)
 }
 
 func (s *instrumentingService) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
@@ -35,5 +35,5 @@ func (s *instrumentingService) List(ctx context.Context, order, by string, pageS
 		s.requestLatency.With("method", "list").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return s.List(ctx, order, by, pageSize, offset)
+	return s.Service.List(ctx, order, by, pageSize, offset)
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/guregu/null.v3"
 )
@@ -51,6 +52,7 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 
 func (c *post) Find(id int64) (res *Post, err error) {
 	var p Post
+	fmt.Println("asdfasdfasdf")
 
 	if err = c.db.Select("posts.*,users.*").Where("posts.id=?", id).Joins("INNER JOIN users ON posts.user_id = users.id").First(&p).Error; err != nil {
 		//if err = c.db.Where("id=?", id).Related(p.User).First(&p).Error; err != nil {
