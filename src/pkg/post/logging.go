@@ -27,19 +27,20 @@ func (s *loggingService) Get(ctx context.Context, id int64) (rs map[string]inter
 	return s.Service.Get(ctx, id)
 }
 
-func (s *loggingService) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
+func (s *loggingService) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
 			"method", "List",
 			"order", order,
 			"by", by,
+			"action", action,
 			"pageSize", pageSize,
 			"offset", offset,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.List(ctx, order, by, pageSize, offset)
+	return s.Service.List(ctx, order, by, action, pageSize, offset)
 }
 
 func (s *loggingService) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {

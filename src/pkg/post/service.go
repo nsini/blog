@@ -14,7 +14,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
 	Get(ctx context.Context, id int64) (rs map[string]interface{}, err error)
-	List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error)
+	List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error)
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
 }
 
@@ -65,19 +65,19 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 /**
  * @Title 列表页
  */
-func (c *service) List(ctx context.Context, order, by string, pageSize, offset int) (rs []map[string]interface{}, count uint64, err error) {
+func (c *service) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error) {
 	// 取列表 判断搜索、分类、Tag条件
 	// 取最多阅读
 
-	posts, count, err := c.post.FindBy(order, by, pageSize, offset)
+	posts, count, err := c.post.FindBy(action, order, by, pageSize, offset)
 	if err != nil {
 		return
 	}
 
-	var postIds []uint
+	var postIds []int64
 
 	for _, post := range posts {
-		postIds = append(postIds, post.Model.ID)
+		postIds = append(postIds, post.ID)
 	}
 
 	images, err := c.image.FindByPostIds(postIds)
@@ -87,18 +87,18 @@ func (c *service) List(ctx context.Context, order, by string, pageSize, offset i
 
 	imageMap := make(map[int64]string, len(images))
 	for _, image := range images {
-		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.GetString("server", "image_upload"))
+		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.GetString("server", "image_domain"))
 	}
 
 	_ = c.logger.Log("count", count)
 
 	for _, val := range posts {
-		imageUrl, ok := imageMap[int64(val.Model.ID)]
+		imageUrl, ok := imageMap[val.ID]
 		if !ok {
-			_ = c.logger.Log("postId", val.Model.ID, "image", ok)
+			_ = c.logger.Log("postId", val.ID, "image", ok)
 		}
 		rs = append(rs, map[string]interface{}{
-			"id":         strconv.FormatUint(uint64(val.Model.ID), 10),
+			"id":         strconv.FormatUint(uint64(val.ID), 10),
 			"title":      val.Title,
 			"desc":       val.Description,
 			"publish_at": val.PushTime.Time.Format("2006/01/02 15:04:05"),
@@ -121,10 +121,10 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 		return
 	}
 
-	var postIds []uint
+	var postIds []int64
 
 	for _, post := range posts {
-		postIds = append(postIds, post.Model.ID)
+		postIds = append(postIds, post.ID)
 	}
 
 	images, err := c.image.FindByPostIds(postIds)
@@ -138,16 +138,16 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 	}
 
 	for _, post := range posts {
-		imageUrl, ok := imageMap[int64(post.Model.ID)]
+		imageUrl, ok := imageMap[post.ID]
 		if !ok {
-			_ = c.logger.Log("postId", post.Model.ID, "image", ok)
+			_ = c.logger.Log("postId", post.ID, "image", ok)
 		}
 
 		desc := []rune(post.Description.String)
 		rs = append(rs, map[string]interface{}{
 			"title":     post.Title,
 			"desc":      string(desc[:40]),
-			"id":        post.Model.ID,
+			"id":        post.ID,
 			"image_url": imageUrl,
 		})
 	}
@@ -156,6 +156,7 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 }
 
 func imageUrl(path, imageDomain string) string {
+	//return strings.Replace(strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1), "http://source.lattecake.com/image/", imageDomain+"image/", -1)
 	return strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1)
 }
 

@@ -18,7 +18,6 @@ import (
 var errBadRoute = errors.New("bad route")
 
 func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
-	//ctx := context.Background()
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeError),
@@ -71,6 +70,7 @@ func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error
 	order := r.URL.Query().Get("order")
 	by := r.URL.Query().Get("by")
 	offset := r.URL.Query().Get("offset")
+	action, _ := strconv.Atoi(r.URL.Query().Get("action"))
 
 	if size == "" {
 		size = "10"
@@ -81,9 +81,11 @@ func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error
 	if by == "" {
 		by = "id"
 	}
-
 	if offset == "" {
 		offset = "0"
+	}
+	if action < 1 {
+		action = 1
 	}
 
 	pageSize, _ := strconv.Atoi(size)
@@ -93,6 +95,7 @@ func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error
 		order:    order,
 		by:       by,
 		offset:   pageOffset,
+		action:   action,
 	}, nil
 }
 
@@ -152,16 +155,16 @@ func postPaginator(count, pageSize, offset int) string {
 	if offset+pageSize > count {
 		next = offset
 	}
-	res = append(res, fmt.Sprintf(`<li><a href="/post/?pageSize=10&offset=%d">Prev</a></li>`, prev))
+	res = append(res, fmt.Sprintf(`<li><a href="/post?pageSize=10&offset=%d">Prev</a></li>`, prev))
 	for i := 1; i < (count / pageSize); i++ {
 		os := (i - 1) * 10
 		var active string
 		if offset == os {
 			active = `class="active"`
 		}
-		res = append(res, fmt.Sprintf(`<li %s><a href="/post/?pageSize=10&offset=%d">%d</a></li>`, active, os, i))
+		res = append(res, fmt.Sprintf(`<li %s><a href="/post?pageSize=10&offset=%d">%d</a></li>`, active, os, i))
 	}
-	res = append(res, fmt.Sprintf(`<li><a href="/post/?pageSize=10&offset=%d">Next</a></li>`, next))
+	res = append(res, fmt.Sprintf(`<li><a href="/post?pageSize=10&offset=%d">Next</a></li>`, next))
 	return strings.Join(res, "\n")
 }
 

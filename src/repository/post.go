@@ -2,16 +2,17 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/guregu/null.v3"
+	"time"
 )
 
 type Post struct {
-	gorm.Model
-	Action  int    `gorm:"column:action"`
-	Content string `gorm:"column:content"`
-	//CreatedAt   time.Time   `gorm:"column:created_at"`
+	//gorm.Model
+	Action      int         `gorm:"column:action"`
+	Content     string      `gorm:"column:content"`
+	CreatedAt   time.Time   `gorm:"column:created_at"`
+	UpdatedAt   time.Time   `gorm:"column:updated_at"`
 	Description null.String `gorm:"column:description"`
 	Slug        null.String `gorm:"column:slug"`
 	ID          int64       `gorm:"column:id;primary_key"`
@@ -23,7 +24,7 @@ type Post struct {
 	Status      int         `gorm:"column:status"`
 	Title       string      `gorm:"column:title"`
 	UserID      null.Int    `gorm:"column:user_id"`
-	User        User
+	User        User        `gorm:"ForeignKey:id;AssociationForeignKey:user_id"`
 }
 
 var (
@@ -36,7 +37,7 @@ func (p *Post) TableName() string {
 
 type PostRepository interface {
 	Find(id int64) (res *Post, err error)
-	FindBy(order, by string, pageSize, offset int) ([]*Post, uint64, error)
+	FindBy(action int, order, by string, pageSize, offset int) ([]*Post, int64, error)
 	Popular() (posts []*Post, err error)
 	SetReadNum(p *Post) error
 	Create(p *Post) error
@@ -52,21 +53,23 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 
 func (c *post) Find(id int64) (res *Post, err error) {
 	var p Post
-	fmt.Println("asdfasdfasdf")
 
-	if err = c.db.Select("posts.*,users.*").Where("posts.id=?", id).Joins("INNER JOIN users ON posts.user_id = users.id").First(&p).Error; err != nil {
-		//if err = c.db.Where("id=?", id).Related(p.User).First(&p).Error; err != nil {
+	if err = c.db.Preload("User").
+		Find(&p, "id = ?", id).Error; err != nil {
 		return nil, PostNotFound
 	}
 	return &p, nil
 }
 
-func (c *post) FindBy(order, by string, pageSize, offset int) ([]*Post, uint64, error) {
+func (c *post) FindBy(action int, order, by string, pageSize, offset int) ([]*Post, int64, error) {
 	posts := make([]*Post, 0)
-	var count uint64
-	if err := c.db.Table("posts").Select("posts.*,users.*").Order(gorm.Expr("posts." + by + " " + order)).
-		Where("posts.push_time IS NOT NULL").
-		Joins("INNER JOIN users ON posts.user_id = users.id").Count(&count).
+	var count int64
+	if err := c.db.Model(&posts).Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id,username")
+	}).
+		Where("action = ?", action).
+		Order(gorm.Expr(by + " " + order)).
+		Where("push_time IS NOT NULL").Count(&count).
 		Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
 		return nil, 0, err
 	}
@@ -82,7 +85,7 @@ func (c *post) Popular() (posts []*Post, err error) {
 
 func (c *post) SetReadNum(p *Post) error {
 	p.ReadNum += 1
-	return c.db.Exec("UPDATE `posts` SET `read_num` = ?  WHERE `posts`.`deleted_at` IS NULL AND `posts`.`id` = ?", p.ReadNum, p.Model.ID).Error
+	return c.db.Exec("UPDATE `posts` SET `read_num` = ?  WHERE `posts`.`deleted_at` IS NULL AND `posts`.`id` = ?", p.ReadNum, p.ID).Error
 }
 
 func (c *post) Create(p *Post) error {

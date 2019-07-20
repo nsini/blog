@@ -8,7 +8,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
-	"github.com/nsini/blog/src/util"
+	"github.com/nsini/blog/src/util/file"
 	"github.com/pkg/errors"
 	"gopkg.in/guregu/null.v3"
 	"io"
@@ -133,7 +133,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) {
 
 	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
 	filePath := c.config.GetString(config.SectionServer, config.ImageFilePath) + simPath
-	if !util.PathExist(filePath) {
+	if !file.PathExist(filePath) {
 		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
 			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
 			return
@@ -246,7 +246,7 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 		return
 	}
 
-	rs.Params.Param.Value.String = strconv.Itoa(int(p.Model.ID))
+	rs.Params.Param.Value.String = strconv.Itoa(int(p.ID))
 
 	return
 }
@@ -273,7 +273,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "postid",
 		Value: memberValue{
-			String: strconv.Itoa(int(post.Model.ID)),
+			String: strconv.Itoa(int(post.ID)),
 		},
 	}, member{
 		Name: "description",
@@ -288,7 +288,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "link",
 		Value: memberValue{
-			String: "/post/" + strconv.Itoa(int(post.Model.ID)),
+			String: "/post/" + strconv.Itoa(int(post.ID)),
 		},
 	}, member{
 		Name: "mt_keywords",

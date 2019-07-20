@@ -18,8 +18,8 @@ type postRequest struct {
 }
 
 type listRequest struct {
-	order, by        string
-	pageSize, offset int
+	order, by                string
+	action, pageSize, offset int
 }
 
 type postResponse struct {
@@ -35,7 +35,7 @@ type paginator struct {
 
 type listResponse struct {
 	Data      []map[string]interface{} `json:"data,omitempty"`
-	Count     uint64                   `json:"count,omitempty"`
+	Count     int64                    `json:"count,omitempty"`
 	Paginator paginator                `json:"paginator,omitempty"`
 	Err       error                    `json:"error,omitempty"`
 }
@@ -53,7 +53,7 @@ func makeGetEndpoint(s Service) endpoint.Endpoint {
 func makeListEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(listRequest)
-		rs, count, err := s.List(ctx, req.order, req.by, req.pageSize, req.offset)
+		rs, count, err := s.List(ctx, req.order, req.by, req.action, req.pageSize, req.offset)
 		pager := paginator{
 			By:       req.by,
 			Offset:   req.offset,

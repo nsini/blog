@@ -12,6 +12,7 @@ import (
 	"github.com/nsini/blog/src/pkg/board"
 	"github.com/nsini/blog/src/pkg/home"
 	"github.com/nsini/blog/src/pkg/post"
+	"github.com/nsini/blog/src/pkg/reward"
 	"github.com/nsini/blog/src/repository"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -153,6 +154,7 @@ func run() {
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
 	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger))
 	mux.Handle("/board", board.MakeHandler(boardSvc, httpLogger))
+	mux.Handle("/reward", reward.MakeHandler(httpLogger))
 	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))
 
 	http.Handle("/metrics", promhttp.Handler())
