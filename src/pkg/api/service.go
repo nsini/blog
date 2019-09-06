@@ -8,9 +8,9 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/repository/types"
 	"github.com/nsini/blog/src/util/file"
 	"github.com/pkg/errors"
-	"gopkg.in/guregu/null.v3"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -31,11 +31,9 @@ type Service interface {
 }
 
 type service struct {
-	post   repository.PostRepository
-	user   repository.UserRepository
-	image  repository.ImageRepository
-	logger log.Logger
-	config *config.Config
+	repository repository.Repository
+	logger     log.Logger
+	config     *config.Config
 }
 
 type PostFields string
@@ -125,7 +123,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPost
 	fileSha := fmt.Sprintf("%x", md5h.Sum([]byte("")))
 
 	// todo 进行数据md5值验证 需要不需要返回地址呢？
-	if c.image.ExistsImageByMd5(fileSha) {
+	if c.repository.Image().ExistsImageByMd5(fileSha) {
 		_ = c.logger.Log("c.image", "ExistsImageByMd5", "err", "file is exists.")
 		return
 	}
@@ -153,16 +151,15 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPost
 	}
 
 	// 存入数据库
-	if err = c.image.AddImage(&repository.Image{
-		ImageName: fileName,
-		Extension: null.StringFrom(extName),
-		ImagePath: null.StringFrom(simPath + fileName),
-		RealPath:  null.StringFrom(fileFullPath),
-		//ImageTime:          null.NewTime(time.Now(), false),
-		ImageStatus:        null.IntFrom(0),
-		ImageSize:          null.StringFrom(strconv.Itoa(int(fileSize))),
-		Md5:                null.StringFrom(fileSha),
-		ClientOriginalMame: null.StringFrom(mediaName),
+	if err = c.repository.Image().AddImage(&types.Image{
+		ImageName:          fileName,
+		Extension:          extName,
+		ImagePath:          simPath + fileName,
+		RealPath:           fileFullPath,
+		ImageStatus:        0,
+		ImageSize:          strconv.Itoa(int(fileSize)),
+		Md5:                fileSha,
+		ClientOriginalMame: mediaName,
 	}); err != nil {
 		_ = c.logger.Log("c.image", "AddImage", "err", err.Error())
 		return
@@ -258,19 +255,19 @@ func (c *service) Post(ctx context.Context, method PostMethod, req postRequest) 
 		desc = desc[:100]
 	}
 
-	p := repository.Post{
+	p := types.Post{
 		Title:       postTitle,
 		Content:     description,
-		Description: null.StringFrom(string(desc)),
-		IsMarkdown:  null.IntFrom(int64(1)), // todo 想办法怎么验证一下
-		PushTime:    null.NewTime(time.Now(), true),
-		UserID:      null.IntFrom(userId),
+		Description: string(desc),
+		IsMarkdown:  true, // todo 想办法怎么验证一下
+		PushTime:    time.Now(),
+		UserID:      userId,
 		Status:      publishStatus,
 		Action:      1,
 		ReadNum:     1,
 	}
 
-	if err = c.post.Create(&p); err != nil {
+	if err = c.repository.Post().Create(&p); err != nil {
 		return
 	}
 
@@ -286,7 +283,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 
 	_ = c.logger.Log("postId", id)
 
-	post, err := c.post.Find(id)
+	post, err := c.repository.Post().Find(id)
 	if err != nil {
 		return nil, PostNotFound
 	}
@@ -296,7 +293,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	members = append(members, member{
 		Name: "userid",
 		Value: memberValue{
-			String: strconv.Itoa(int(post.UserID.Int64)),
+			String: strconv.Itoa(int(post.UserID)),
 		},
 	}, member{
 		Name: "postid",
@@ -306,7 +303,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "description",
 		Value: memberValue{
-			String: post.Description.String,
+			String: post.Description,
 		},
 	}, member{
 		Name: "title",
@@ -326,7 +323,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "wp_slug",
 		Value: memberValue{
-			String: post.Slug.String,
+			String: post.Slug,
 		},
 	}, member{
 		Name: "wp_author",
@@ -341,7 +338,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "date_created_gmt",
 		Value: memberValue{
-			String: post.PushTime.Time.String(),
+			String: post.PushTime.String(),
 		},
 	}, member{
 		Name: "post_status",
@@ -411,12 +408,10 @@ func (c *service) GetCategories(ctx context.Context, req postRequest) (rs *getCa
 	return resp, nil
 }
 
-func NewService(logger log.Logger, cf *config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
+func NewService(logger log.Logger, cf *config.Config, repository repository.Repository) Service {
 	return &service{
-		post:   post,
-		user:   user,
-		image:  image,
-		logger: logger,
-		config: cf,
+		repository: repository,
+		logger:     logger,
+		config:     cf,
 	}
 }

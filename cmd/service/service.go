@@ -1,9 +1,11 @@
-package main
+package service
 
 import (
 	"fmt"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/go-kit/kit/metrics/prometheus"
+	"github.com/jinzhu/gorm"
 	"github.com/nsini/blog/src/cmd"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/mysql"
@@ -54,10 +56,15 @@ var (
 blog start -p :8080 -c ./app.cfg
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			run()
+			start()
 			return nil
 		},
 	}
+
+	logger     log.Logger
+	store      repository.Repository
+	db         *gorm.DB
+	adminEmail string
 )
 
 func init() {
@@ -70,28 +77,28 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 }
 
-func main() {
+func Run() {
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(-1)
 	}
 }
 
-func run() {
+func start() {
 
 	cf, err := config.NewConfig(configPath)
 	if err != nil {
 		panic(err)
 	}
 
-	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.StdlibWriter{})
 	logger = log.With(logger, "caller", log.DefaultCaller)
+	logger = level.NewFilter(logger, logLevel(cf.GetString("server", "log_level")))
 
-	db, err := mysql.NewDb(logger, cf)
+	db, err = mysql.NewDb(logger, cf)
 	if err != nil {
-		_ = logger.Log("db", "connect", "err", err)
-		panic(err)
+		_ = level.Error(logger).Log("db", "connect", "err", err)
+		os.Exit(1)
 	}
 	defer func() {
 		if err = db.Close(); err != nil {
@@ -99,10 +106,12 @@ func run() {
 		}
 	}()
 
-	var (
-		postRepository  = repository.NewPostRepository(db)
-		imageRepository = repository.NewImageRepository(db)
-	)
+	store = repository.NewRepository(db)
+
+	if err = importToDb(); err != nil {
+		_ = level.Error(logger).Log("import", "db", "err", err.Error())
+		os.Exit(1)
+	}
 
 	fieldKeys := []string{"method"}
 
@@ -112,11 +121,11 @@ func run() {
 	var apiSvc api.Service
 	var boardSvc board.Service
 	// post
-	ps = post.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
+	ps = post.NewService(logger, cf, store)
 	ps = post.NewLoggingService(logger, ps)
 
 	// api
-	apiSvc = api.NewService(logger, cf, postRepository, repository.NewUserRepository(db), imageRepository)
+	apiSvc = api.NewService(logger, cf, store)
 	apiSvc = api.NewLoggingService(logger, apiSvc)
 	apiSvc = api.NewInstrumentingService(
 		prometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -163,7 +172,7 @@ func run() {
 
 	errs := make(chan error, 2)
 	go func() {
-		_ = logger.Log("transport", "http", "address", httpAddr, "msg", "listening")
+		_ = level.Debug(logger).Log("transport", "http", "address", httpAddr, "msg", "listening")
 		errs <- http.ListenAndServe(httpAddr, nil)
 	}()
 	go func() {
@@ -172,7 +181,7 @@ func run() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	_ = logger.Log("terminated", <-errs)
+	_ = level.Error(logger).Log("terminated", <-errs)
 }
 
 func envString(env, fallback string) string {

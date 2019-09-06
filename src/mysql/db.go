@@ -10,7 +10,11 @@ import (
 )
 
 func NewDb(logger log.Logger, cf *config.Config) (*gorm.DB, error) {
-	dbUrl := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local&timeout=20m&collation=utf8mb4_unicode_ci", "root", "admin", "127.0.0.1", "33306", "nsini-blog")
+	dbUrl := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local&timeout=20m&collation=utf8mb4_unicode_ci",
+		cf.GetString("mysql", "user"), cf.GetString("mysql", "password"),
+		cf.GetString("mysql", "host"), cf.GetString("mysql", "port"),
+		cf.GetString("mysql", "database"))
+
 	db, err := gorm.Open("mysql", dbUrl)
 	if err != nil {
 		return nil, err
@@ -19,7 +23,7 @@ func NewDb(logger log.Logger, cf *config.Config) (*gorm.DB, error) {
 	db.DB().SetMaxIdleConns(10)
 	db.DB().SetMaxOpenConns(100)
 	db.DB().SetConnMaxLifetime(time.Hour)
-	db.LogMode(true)
+	db.LogMode(cf.GetBool("server", "debug"))
 	//db.Raw("SET sql_mode = '';")
 	//var c interface{}
 	//if err = db.Raw("select @@version").Scan(c).Error; err != nil {

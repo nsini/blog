@@ -46,7 +46,7 @@ func makeGetEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(postRequest)
 		rs, err := s.Get(ctx, req.Id)
-		return postResponse{rs, err}, nil
+		return postResponse{rs, err}, err
 	}
 }
 

@@ -19,18 +19,16 @@ type Service interface {
 }
 
 type service struct {
-	post   repository.PostRepository
-	user   repository.UserRepository
-	image  repository.ImageRepository
-	logger log.Logger
-	config *config.Config
+	repository repository.Repository
+	logger     log.Logger
+	config     *config.Config
 }
 
 /**
  * @Title 详情页
  */
 func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
-	detail, err := c.post.Find(id)
+	detail, err := c.repository.Post().Find(id)
 	if err != nil {
 		return
 	}
@@ -40,21 +38,21 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	}
 
 	go func() {
-		if err = c.post.SetReadNum(detail); err != nil {
+		if err = c.repository.Post().SetReadNum(detail); err != nil {
 			_ = c.logger.Log("post.SetReadNum", err.Error())
 		}
 	}()
 
 	var headerImage string
 
-	if image, err := c.image.FindByPostIdLast(id); err == nil && image != nil {
-		headerImage = imageUrl(image.RealPath.String, c.config.GetString("server", "image_domain"))
+	if image, err := c.repository.Image().FindByPostIdLast(id); err == nil && image != nil {
+		headerImage = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
 	}
 
 	return map[string]interface{}{
 		"content":      detail.Content,
 		"title":        detail.Title,
-		"publish_at":   detail.PushTime.Time.Format("2006/01/02 15:04:05"),
+		"publish_at":   detail.PushTime.Format("2006/01/02 15:04:05"),
 		"updated_at":   detail.UpdatedAt,
 		"author":       detail.User.Username,
 		"comment":      detail.Reviews,
@@ -69,7 +67,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 	// 取列表 判断搜索、分类、Tag条件
 	// 取最多阅读
 
-	posts, count, err := c.post.FindBy(action, order, by, pageSize, offset)
+	posts, count, err := c.repository.Post().FindBy(action, order, by, pageSize, offset)
 	if err != nil {
 		return
 	}
@@ -80,14 +78,14 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 		postIds = append(postIds, post.ID)
 	}
 
-	images, err := c.image.FindByPostIds(postIds)
+	images, err := c.repository.Image().FindByPostIds(postIds)
 	if err == nil && images == nil {
 		_ = c.logger.Log("c.image.FindByPostIds", "postIds", "err", err)
 	}
 
 	imageMap := make(map[int64]string, len(images))
 	for _, image := range images {
-		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.GetString("server", "image_domain"))
+		imageMap[image.PostID] = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
 	}
 
 	_ = c.logger.Log("count", count)
@@ -101,7 +99,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 			"id":         strconv.FormatUint(uint64(val.ID), 10),
 			"title":      val.Title,
 			"desc":       val.Description,
-			"publish_at": val.PushTime.Time.Format("2006/01/02 15:04:05"),
+			"publish_at": val.PushTime.Format("2006/01/02 15:04:05"),
 			"image_url":  imageUrl,
 			"comment":    val.Reviews,
 			"author":     val.User.Username,
@@ -116,7 +114,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
  */
 func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
 
-	posts, err := c.post.Popular()
+	posts, err := c.repository.Post().Popular()
 	if err != nil {
 		return
 	}
@@ -127,14 +125,14 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 		postIds = append(postIds, post.ID)
 	}
 
-	images, err := c.image.FindByPostIds(postIds)
+	images, err := c.repository.Image().FindByPostIds(postIds)
 	if err == nil && images == nil {
 		_ = c.logger.Log("c.image.FindByPostIds", "postIds", "err", err)
 	}
 
 	imageMap := make(map[int64]string, len(images))
 	for _, image := range images {
-		imageMap[image.PostID] = imageUrl(image.RealPath.String, c.config.GetString("server", "image_domain"))
+		imageMap[image.PostID] = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
 	}
 
 	for _, post := range posts {
@@ -143,7 +141,7 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 			_ = c.logger.Log("postId", post.ID, "image", ok)
 		}
 
-		desc := []rune(post.Description.String)
+		desc := []rune(post.Description)
 		rs = append(rs, map[string]interface{}{
 			"title":     post.Title,
 			"desc":      string(desc[:40]),
@@ -160,12 +158,10 @@ func imageUrl(path, imageDomain string) string {
 	return strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1)
 }
 
-func NewService(logger log.Logger, cf *config.Config, post repository.PostRepository, user repository.UserRepository, image repository.ImageRepository) Service {
+func NewService(logger log.Logger, cf *config.Config, repository repository.Repository) Service {
 	return &service{
-		post:   post,
-		user:   user,
-		image:  image,
-		logger: logger,
-		config: cf,
+		repository: repository,
+		logger:     logger,
+		config:     cf,
 	}
 }

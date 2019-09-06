@@ -5,6 +5,7 @@ require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190505152737-8914e1cf9164
 	github.com/go-kit/kit v0.8.0
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gorilla/mux v1.7.2
 	github.com/jinzhu/gorm v1.9.8
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
@@ -21,19 +22,4 @@ require (
 	github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d // indirect
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
 	github.com/spf13/cobra v0.0.5
-	gopkg.in/guregu/null.v3 v3.4.0
 )
-
-replace golang.org/x/tools v0.0.0-20181221001348-537d06c36207 => github.com/golang/tools v0.0.0-20181221001348-537d06c36207
-
-replace golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c => github.com/golang/crypto v0.0.0-20190325154230-a5d413f7728c
-
-replace golang.org/x/sync v0.0.0-20181108010431-42b317875d0f => github.com/golang/sync v0.0.0-20181108010431-42b317875d0f
-
-replace golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a => github.com/golang/sync v0.0.0-20181108010431-42b317875d0f
-
-replace golang.org/x/net v0.0.0-20190311183353-d8887717615a => github.com/golang/net v0.0.0-20190311183353-d8887717615a
-
-replace golang.org/x/net v0.0.0-20181220203305-927f97764cc3 => github.com/golang/net v0.0.0-20181220203305-927f97764cc3
-
-replace golang.org/x/net v0.0.0-20181114220301-adae6a3d119a => github.com/golang/net v0.0.0-20181114220301-adae6a3d119a
