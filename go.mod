@@ -1,6 +1,7 @@
 module github.com/nsini/blog
 
 require (
+	github.com/Unknwon/goconfig v0.0.0-20190425194916-3dba17dd7b9e
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190505152737-8914e1cf9164
 	github.com/go-kit/kit v0.8.0
@@ -19,6 +20,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d // indirect
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
+	github.com/spf13/cobra v0.0.5
 	gopkg.in/guregu/null.v3 v3.4.0
 )
 
