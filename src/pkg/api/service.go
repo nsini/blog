@@ -343,20 +343,27 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "post_status",
 		Value: memberValue{
-			String: strconv.Itoa(post.Status),
+			String: "publish",
 		},
-	}, member{
-		Name: "categories",
-		//Value: memberValue{
-		//	Array: array{
-		//		Data: data{
-		//			Value: dataValue{
-		//				String: "技术,生活",
-		//			},
-		//		},
-		//	},
-		//},
-	})
+	},
+		//, member{
+		//	Name: "categories",
+		//	//Value: memberValue{
+		//	//	Array: array{
+		//	//		Data: data{
+		//	//			Value: dataValue{
+		//	//				String: "技术",
+		//	//			},
+		//	//		},
+		//	//	},
+		//	//},
+		//}
+		member{
+			Name: "sticky",
+			Value: memberValue{
+				String: "0",
+			},
+		})
 
 	resp := new(getPostResponse)
 

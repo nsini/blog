@@ -23,3 +23,5 @@ require (
 	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e // indirect
 	github.com/spf13/cobra v0.0.5
 )
+
+go 1.13

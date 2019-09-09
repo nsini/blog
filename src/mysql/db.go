@@ -31,10 +31,10 @@ func NewDb(logger log.Logger, cf *config.Config) (*gorm.DB, error) {
 	//}
 	//
 
-	if err = db.Raw("set global sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';").Error; err != nil {
+	if err = db.Raw("set global sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';").Error; err != nil {
 		_ = logger.Log("db.Raw", err.Error())
 	}
-	if err = db.Raw("set session sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';").Error; err != nil {
+	if err = db.Raw("set session sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';").Error; err != nil {
 		_ = logger.Log("db.Raw", err.Error())
 	}
 	if err = db.DB().Ping(); err != nil {

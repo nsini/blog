@@ -4,47 +4,48 @@ import "encoding/xml"
 
 type memberValue struct {
 	Text    string `xml:",chardata"`
-	Boolean string `xml:"boolean"`
-	String  string `xml:"string"`
-	//DateTimeIso8601 string `xml:"dateTime.iso8601"`
-	//Array           array  `xml:"array"`
-	//Int             string `xml:"int"`
+	Boolean string `xml:"boolean,omitempty"`
+	String  string `xml:"string,omitempty"`
+	//DateTimeIso8601 string `xml:"dateTime.iso8601,omitempty"`
+	//Array           array  `xml:"array,omitempty"`
+	//Int             string `xml:"int,omitempty"`
 }
 
 type member struct {
 	Text  string      `xml:",chardata"`
-	Name  string      `xml:"name"`
-	Value memberValue `xml:"value"`
+	Name  string      `xml:"name,omitempty"`
+	Value memberValue `xml:"value,omitempty"`
+	//Array array       `xml:"array,omitempty"`
 }
 
 type valStruct struct {
 	Text   string   `xml:",chardata"`
-	Member []member `xml:"member"`
+	Member []member `xml:"member,omitempty"`
 }
 
 type dataValue struct {
 	Text   string    `xml:",chardata"`
-	String string    `xml:"string"`
-	Struct valStruct `xml:"struct"`
+	String string    `xml:"string,omitempty"`
+	Struct valStruct `xml:"struct,omitempty"`
 }
 
 type data struct {
 	Text  string    `xml:",chardata"`
-	Value dataValue `xml:"value"`
+	Value dataValue `xml:"value,omitempty"`
 }
 
 type array struct {
 	Text string `xml:",chardata"`
-	Data data   `xml:"data"`
+	Data data   `xml:"data,omitempty"`
 }
 type value struct {
 	Text  string `xml:",chardata"`
-	Array array  `xml:"array"`
+	Array array  `xml:"array,omitempty"`
 }
 
 type param struct {
 	Text  string `xml:",chardata"`
-	Value value  `xml:"value"`
+	Value value  `xml:"value,omitempty"`
 
 	//DateTimeIso8601 string `xml:"dateTime.iso8601"`
 	//String          string `xml:"string"`
@@ -52,13 +53,13 @@ type param struct {
 
 type params struct {
 	Text  string `xml:",chardata"`
-	Param param  `xml:"param"`
+	Param param  `xml:"param,omitempty"`
 }
 
 type getUsersBlogsResponse struct {
 	XMLName xml.Name `xml:"methodResponse"`
 	Text    string   `xml:",chardata"`
-	Params  params   `xml:"params"`
+	Params  params   `xml:"params,omitempty"`
 }
 
 type getCategoriesResponse struct {
@@ -104,7 +105,7 @@ type postRequest struct {
 			Text  string `xml:",chardata"`
 			Value struct {
 				Text   string `xml:",chardata"`
-				String string `xml:"string"`
+				String string `xml:"string,omitempty"`
 				Struct struct {
 					Text   string `xml:",chardata"`
 					Member []struct {

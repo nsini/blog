@@ -1,7 +1,7 @@
-FROM golang:latest as build-env
+FROM golang:1.13.0-alpine3.10 as build-env
 
 ENV GO111MODULE=on
-ENV GOPROXY=http://goproxy-operations.kpl.yixinonline.org
+ENV GOPROXY=http://goproxy.yrd.creditease.corp
 ENV BUILDPATH=github.com/nsini/blog
 RUN mkdir -p /go/src/${BUILDPATH}
 COPY ./ /go/src/${BUILDPATH}
