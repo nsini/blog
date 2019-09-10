@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/endpoint"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -16,15 +17,35 @@ import (
 //var errBadRoute = errors.New("bad route")
 var ErrInvalidArgument = errors.New("invalid argument")
 
-func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
-	//ctx := context.Background()
+type endpoints struct {
+	PostEndpoint endpoint.Endpoint
+}
+
+func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeXmlError),
+		kithttp.ServerBefore(kithttp.PopulateRequestContext),
+	}
+
+	eps := endpoints{
+		PostEndpoint: makePostEndpoint(svc),
+	}
+
+	ems := []endpoint.Middleware{
+		// todo 中间件验证
+	}
+
+	mw := map[string][]endpoint.Middleware{
+		"Post": ems,
+	}
+
+	for _, m := range mw["Post"] {
+		eps.PostEndpoint = m(eps.PostEndpoint)
 	}
 
 	post := kithttp.NewServer(
-		makePostEndpoint(ps),
+		eps.PostEndpoint,
 		decodePostRequest,
 		encodeResponse,
 		opts...,

@@ -7,7 +7,7 @@ type memberValue struct {
 	Boolean string `xml:"boolean,omitempty"`
 	String  string `xml:"string,omitempty"`
 	//DateTimeIso8601 string `xml:"dateTime.iso8601,omitempty"`
-	//Array           array  `xml:"array,omitempty"`
+	Array interface{} `xml:"array,omitempty"`
 	//Int             string `xml:"int,omitempty"`
 }
 
@@ -21,6 +21,7 @@ type member struct {
 type valStruct struct {
 	Text   string   `xml:",chardata"`
 	Member []member `xml:"member,omitempty"`
+	//Array  array    `xml:"array,omitempty"`
 }
 
 type dataValue struct {
@@ -30,8 +31,8 @@ type dataValue struct {
 }
 
 type data struct {
-	Text  string    `xml:",chardata"`
-	Value dataValue `xml:"value,omitempty"`
+	Text  string      `xml:",chardata"`
+	Value interface{} `xml:"value,omitempty"`
 }
 
 type array struct {

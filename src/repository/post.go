@@ -16,6 +16,7 @@ type PostRepository interface {
 	Popular() (posts []*types.Post, err error)
 	SetReadNum(p *types.Post) error
 	Create(p *types.Post) error
+	Update(p *types.Post) error
 }
 
 type post struct {
@@ -26,10 +27,16 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 	return &post{db: db}
 }
 
+func (c *post) Update(p *types.Post) error {
+	return c.db.Model(p).Where("id = ?", p.ID).Update(p).Error
+}
+
 func (c *post) Find(id int64) (res *types.Post, err error) {
 	var p types.Post
 
-	if err = c.db.Preload("User").
+	if err = c.db.Model(&p).
+		Preload("User").
+		Preload("Categories").
 		Find(&p, "id = ?", id).Error; err != nil {
 		return nil, PostNotFound
 	}

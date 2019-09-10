@@ -14,23 +14,37 @@ type Repository interface {
 	Post() PostRepository
 	Image() ImageRepository
 	Comment() CommentRepository
+	Tag() TagRepository
+	Category() CategoryRepository
 }
 
 type store struct {
-	db      *gorm.DB
-	user    UserRepository
-	post    PostRepository
-	image   ImageRepository
-	comment CommentRepository
+	db       *gorm.DB
+	user     UserRepository
+	post     PostRepository
+	image    ImageRepository
+	comment  CommentRepository
+	tag      TagRepository
+	category CategoryRepository
 }
 
 func NewRepository(db *gorm.DB) Repository {
 	return &store{
-		user:    NewUserRepository(db),
-		post:    NewPostRepository(db),
-		image:   NewImageRepository(db),
-		comment: NewCommentRepository(db),
+		user:     NewUserRepository(db),
+		post:     NewPostRepository(db),
+		image:    NewImageRepository(db),
+		comment:  NewCommentRepository(db),
+		tag:      NewTagRepository(db),
+		category: NewCategoryRepository(db),
 	}
+}
+
+func (c *store) Category() CategoryRepository {
+	return c.category
+}
+
+func (c *store) Tag() TagRepository {
+	return c.tag
 }
 
 func (c *store) User() UserRepository {

@@ -15,6 +15,7 @@ const (
 	GetCategories  PostMethod = "metaWeblog.getCategories"
 	NewMediaObject PostMethod = "metaWeblog.newMediaObject"
 	GetPost        PostMethod = "metaWeblog.getPost"
+	EditPost       PostMethod = "metaWeblog.editPost"
 	GetUsersBlogs  PostMethod = "blogger.getUsersBlogs"
 )
 
@@ -62,9 +63,9 @@ func makePostEndpoint(s Service) endpoint.Endpoint {
 				}
 			}
 		case GetCategories:
-			return s.GetCategories(ctx, req)
+			return s.GetCategories(ctx)
 		case PostCreate:
-			rs, err := s.Post(ctx, PostCreate, req)
+			rs, err := s.Post(ctx, req)
 			return rs, err
 		case NewMediaObject:
 			resp, err = s.MediaObject(ctx, req)
@@ -73,6 +74,9 @@ func makePostEndpoint(s Service) endpoint.Endpoint {
 				postId, _ := strconv.Atoi(req.Params.Param[0].Value.String)
 				return s.GetPost(ctx, int64(postId))
 			}
+		case EditPost:
+			postId, _ := strconv.ParseInt(req.Params.Param[0].Value.String, 10, 64)
+			return s.EditPost(ctx, postId, req)
 		}
 
 		return resp, err
