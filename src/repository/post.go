@@ -19,6 +19,13 @@ type PostRepository interface {
 	Update(p *types.Post) error
 }
 
+type PostStatus string
+
+const (
+	PostStatusPublish PostStatus = "publish"
+	PostStatusDraft   PostStatus = "draft"
+)
+
 type post struct {
 	db *gorm.DB
 }
@@ -48,10 +55,12 @@ func (c *post) FindBy(action int, order, by string, pageSize, offset int) ([]*ty
 	var count int64
 	if err := c.db.Model(&posts).Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id,username")
-	}).
+	}).Preload("Tags").
 		Where("action = ?", action).
+		Where("push_time IS NOT NULL").
+		Where("post_status = ?", string(PostStatusPublish)).
 		Order(gorm.Expr(by + " " + order)).
-		Where("push_time IS NOT NULL").Count(&count).
+		Count(&count).
 		Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {
 		return nil, 0, err
 	}

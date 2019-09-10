@@ -22,7 +22,7 @@ func NewImageRepository(db *gorm.DB) ImageRepository {
 
 func (c *image) FindByPostIdLast(postId int64) (res *types.Image, err error) {
 	var i types.Image
-	if err = c.db.Last(&i, "post_id=?", postId).Error; err != nil {
+	if err = c.db.Last(&i, "post_id=?", postId).Error; err == nil {
 		return &i, nil
 	}
 	return

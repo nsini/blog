@@ -95,8 +95,9 @@
                                 <i class="tf-ion-android-person"></i> 由 {{post.author}} 发布
                             </li>
                             <li>
-                                <a href=""><i class="tf-ion-ios-pricetags"></i> LIFESTYLE</a>,<a href=""> TRAVEL</a>, <a
-                                        href="">FASHION</a>
+                                {% for tag in post.tags%}
+                                <a href="">{{tag.name}}</a>
+                                {% endfor %}
                             </li>
                             <li>
                                 <a href=""><i class="tf-ion-chatbubbles"></i> {{comment|toString}} 条评论</a>

@@ -158,6 +158,11 @@ func (c *service) EditPost(ctx context.Context, id int64, req postRequest) (rs n
 	post.PostStatus = postStatus
 	post.Slug = slug
 
+	if post.PushTime == nil && repository.PostStatus(postStatus) == repository.PostStatusPublish {
+		now := time.Now()
+		post.PushTime = &now
+	}
+
 	if err = c.repository.Post().Update(post); err != nil {
 		return
 	}
@@ -235,7 +240,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPost
 	}
 
 	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
-	filePath := c.config.GetString(config.SectionServer, config.ImageFilePath) + simPath
+	filePath := c.config.GetString(config.SectionServer, "image_path") + "/" + simPath
 	if !file.PathExist(filePath) {
 		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
 			_ = c.logger.Log("os", "MkdirAll", "err", err.Error())
@@ -290,7 +295,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPost
 	}, member{
 		Name: "url",
 		Value: memberValue{
-			String: "http://source.lattecake.com/",
+			String: c.config.GetString("server", "image_domain") + "/" + simPath + fileName + c.config.GetString(config.SectionServer, "image_suffix"),
 		},
 	}, member{
 		Name: "type",
@@ -473,7 +478,7 @@ func (c *service) GetPost(ctx context.Context, id int64) (rs *getPostResponse, e
 	}, member{
 		Name: "date_created_gmt",
 		Value: memberValue{
-			String: post.PushTime.String(),
+			String: post.CreatedAt.String(),
 		},
 	}, member{
 		Name: "post_status",

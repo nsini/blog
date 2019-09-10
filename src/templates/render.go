@@ -44,6 +44,7 @@ func Render(data map[string]interface{}, body io.Writer, tplName string) error {
 		tpl = pongo2.Must(pongo2.FromFile(tplName + tplExt))
 		//templatesCache[tplName] = tpl
 	}
+	data["action"] = tplName
 
 	b, _ := json.Marshal(data)
 
@@ -63,7 +64,7 @@ func RenderHtml(ctx context.Context, w http.ResponseWriter, response map[string]
 	name := ctx.Value("method").(string)
 
 	buf := new(bytes.Buffer)
-	if err := Render(response, buf, "views/"+name); err != nil {
+	if err := Render(response, buf, "views-1/"+name); err != nil {
 		return err
 	}
 

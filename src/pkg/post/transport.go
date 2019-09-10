@@ -79,7 +79,7 @@ func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error
 		order = "desc"
 	}
 	if by == "" {
-		by = "id"
+		by = "push_time"
 	}
 	if offset == "" {
 		offset = "0"

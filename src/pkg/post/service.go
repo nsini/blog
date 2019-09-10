@@ -3,6 +3,7 @@ package post
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
@@ -46,8 +47,10 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	var headerImage string
 
 	if image, err := c.repository.Image().FindByPostIdLast(id); err == nil && image != nil {
-		headerImage = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
+		headerImage = c.config.GetString("server", "image_domain") + "/" + image.ImagePath
 	}
+
+	fmt.Println("headerImage", headerImage)
 
 	return map[string]interface{}{
 		"content":      detail.Content,
@@ -103,6 +106,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 			"image_url":  imageUrl,
 			"comment":    val.Reviews,
 			"author":     val.User.Username,
+			"tags":       val.Tags,
 		})
 	}
 
