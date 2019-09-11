@@ -3,12 +3,10 @@ package post
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
 	"strconv"
-	"strings"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
@@ -38,10 +36,12 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 		return nil, repository.PostNotFound
 	}
 
-	go func() {
-		if err = c.repository.Post().SetReadNum(detail); err != nil {
-			_ = c.logger.Log("post.SetReadNum", err.Error())
-		}
+	defer func() {
+		go func() {
+			if err = c.repository.Post().SetReadNum(detail); err != nil {
+				_ = c.logger.Log("post.SetReadNum", err.Error())
+			}
+		}()
 	}()
 
 	var headerImage string
@@ -49,8 +49,6 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	if image, err := c.repository.Image().FindByPostIdLast(id); err == nil && image != nil {
 		headerImage = c.config.GetString("server", "image_domain") + "/" + image.ImagePath
 	}
-
-	fmt.Println("headerImage", headerImage)
 
 	return map[string]interface{}{
 		"content":      detail.Content,
@@ -88,7 +86,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 
 	imageMap := make(map[int64]string, len(images))
 	for _, image := range images {
-		imageMap[image.PostID] = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
+		imageMap[image.PostID] = imageUrl(image.ImagePath, c.config.GetString("server", "image_domain"))
 	}
 
 	_ = c.logger.Log("count", count)
@@ -136,7 +134,7 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 
 	imageMap := make(map[int64]string, len(images))
 	for _, image := range images {
-		imageMap[image.PostID] = imageUrl(image.RealPath, c.config.GetString("server", "image_domain"))
+		imageMap[image.PostID] = imageUrl(image.ImagePath, c.config.GetString("server", "image_domain"))
 	}
 
 	for _, post := range posts {
@@ -158,8 +156,7 @@ func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err
 }
 
 func imageUrl(path, imageDomain string) string {
-	//return strings.Replace(strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1), "http://source.lattecake.com/image/", imageDomain+"image/", -1)
-	return strings.Replace(path, "/mnt/storage/uploads/", imageDomain, -1)
+	return imageDomain + "/" + path
 }
 
 func NewService(logger log.Logger, cf *config.Config, repository repository.Repository) Service {

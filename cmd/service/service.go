@@ -144,7 +144,7 @@ func start() {
 	)
 
 	// home
-	homeSvc = home.NewService(logger)
+	homeSvc = home.NewService(logger, cf, store)
 	homeSvc = home.NewLoggingService(logger, homeSvc)
 
 	// about

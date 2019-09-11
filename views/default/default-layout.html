@@ -20,22 +20,19 @@
     <meta name="msapplication-TileColor" content="#0e90d2">
     <link rel="stylesheet" href="https://lattecake.oss-cn-beijing.aliyuncs.com/static/blog/css/amazeui.min.css">
     <link rel="stylesheet" href="https://lattecake.oss-cn-beijing.aliyuncs.com/static/blog/css/app.css">
+    {% block stylesheet %}
+    {% endblock %}
 </head>
 <body id="blog-article-sidebar">
 
 <!-- header start -->
 <header class="am-g am-g-fixed blog-fixed blog-text-center blog-header">
     <div class="am-u-sm-8 am-u-sm-centered">
-    {{/*<img width="200" src="http://s.amazeui.org/media/i/brand/amazeui-b.png" alt="LatteCake Logo"/>*/}}
         <h2 class="am-hide-sm-only">那时候刚好下着雨，柏油路面湿冷冷的，还闪烁着青、黄、红颜色的灯火。</h2>
     </div>
 </header>
 <!-- header end -->
 <hr>
-
-{{/*{% block headerBar %}*/}}
-{{/*{% include "header-bar.html" %}*/}}
-{{/*{% endblock %}*/}}
 
 {% block menu %}
 {% include "default-navigation.html" %}
@@ -45,7 +42,7 @@
 {% endblock %}
 
 {% block body %}
-hello world!
+哈也木有...
 {% endblock %}
 
 <footer class="blog-footer">
@@ -58,15 +55,13 @@ hello world!
             <h3>社交账号</h3>
             <p>
                 <a href="https://github.com/lattecake" target="_blank"><span
-                        class="am-icon-github am-icon-fw blog-icon blog-icon"></span></a>
+                            class="am-icon-github am-icon-fw blog-icon blog-icon"></span></a>
                 <a href="https://weibo.com/solacowa"><span class="am-icon-weibo am-icon-fw blog-icon blog-icon"></span></a>
             </p>
         </div>
         <div class="am-u-sm-12 am-u-md-4- am-u-lg-4">
             <h3>Heroes</h3>
-            <p>
-		多赚点钱，赚的钱多好，很多事自然就变了。
-            </p>
+            <p>多赚点钱，赚的钱多好，很多事自然就变了。</p>
         </div>
     </div>
     <div class="blog-text-center">© LatteCake 2019 All right reserved. By dudulu.me</div>
@@ -91,18 +86,6 @@ hello world!
             window.location.href = "http://www.google.cn/intl/zh-CN/chrome/browser/";
         }
     };
-
-    var _hmt = _hmt || [];
-    (function () {
-        var hm = document.createElement("script");
-        hm.src = "//hm.baidu.com/hm.js?325ecd282d3804cd811c4072e0b3ed2a";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-    })();
-
-    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
-    document.write(unescape("%3Cspan id='cnzz_stat_icon_1257356896'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1257356896' type='text/javascript'%3E%3C/script%3E"));
-
 </script>
 
 </body>

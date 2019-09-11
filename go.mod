@@ -11,6 +11,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/prometheus/client_golang v0.9.3
+	github.com/russross/blackfriday v1.5.2
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shurcooL/github_flavored_markdown v0.0.0-20181002035957-2122de532470
 	github.com/shurcooL/go v0.0.0-20190330031554-6713ea532688 // indirect

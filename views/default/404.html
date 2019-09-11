@@ -1,3 +1,6 @@
+{% extends "default-layout.html" %}
+
+{% block stylesheet %}
 <style type="text/css">
     body {
         margin: 0px;
@@ -72,11 +75,16 @@
     }
 </style>
 
+{% endblock %}
+
+{% block body %}
 <div id="page" style="border-style:dashed;border-color:#e4e4e4;line-height:30px;">
-    <h1>{{.errorCode}}~</h1>
+    <h1>{{message}}~</h1>
     <h2>Sorry, the site now can not be accessed. </h2>
-    <font color="#666666">{{.message}}</font><br/><br/>
+    <font color="#666666">{{message}}</font><br/><br/>
     <div class="button">
-        <a href="https://lattecake.com/" title="Home" target="_blank">Home</a>
+        <a href="/" title="Home">Home</a>
     </div>
 </div>
+
+{% endblock %}

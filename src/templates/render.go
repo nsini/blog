@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/flosch/pongo2"
-	"github.com/shurcooL/github_flavored_markdown"
+	"github.com/russross/blackfriday"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -19,7 +20,13 @@ var (
 
 func init() {
 	if err := pongo2.RegisterFilter("markdown", func(in *pongo2.Value, param *pongo2.Value) (out *pongo2.Value, err *pongo2.Error) {
-		return pongo2.AsSafeValue(string(github_flavored_markdown.Markdown([]byte(in.String())))), nil
+		return pongo2.AsSafeValue(string(blackfriday.Markdown([]byte(in.String()), blackfriday.HtmlRenderer(0, "", "markdown-body"), blackfriday.EXTENSION_NO_INTRA_EMPHASIS|
+			blackfriday.EXTENSION_TABLES|
+			blackfriday.EXTENSION_FENCED_CODE|
+			blackfriday.EXTENSION_AUTOLINK|
+			blackfriday.EXTENSION_STRIKETHROUGH|
+			blackfriday.EXTENSION_SPACE_HEADERS|
+			blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK))), nil
 	}); err != nil {
 		fmt.Println("err", err.Error())
 	}
@@ -44,7 +51,12 @@ func Render(data map[string]interface{}, body io.Writer, tplName string) error {
 		tpl = pongo2.Must(pongo2.FromFile(tplName + tplExt))
 		//templatesCache[tplName] = tpl
 	}
-	data["action"] = tplName
+	action := strings.Split(tplName, "/")
+	if data == nil {
+		data = map[string]interface{}{
+			"action": action[2],
+		}
+	}
 
 	b, _ := json.Marshal(data)
 
@@ -64,7 +76,7 @@ func RenderHtml(ctx context.Context, w http.ResponseWriter, response map[string]
 	name := ctx.Value("method").(string)
 
 	buf := new(bytes.Buffer)
-	if err := Render(response, buf, "views-1/"+name); err != nil {
+	if err := Render(response, buf, "views/default/"+name); err != nil {
 		return err
 	}
 
@@ -75,8 +87,4 @@ func RenderHtml(ctx context.Context, w http.ResponseWriter, response map[string]
 	}
 
 	return nil
-}
-
-func PageNotFound() {
-
 }

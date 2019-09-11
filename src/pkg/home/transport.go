@@ -26,6 +26,11 @@ func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 	r.Handle("/", index).Methods("GET")
+
+	r.NotFoundHandler = r.NewRoute().HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		encodeError(context.Background(), repository.PostNotFound, writer)
+	}).GetHandler()
+
 	return r
 }
 
@@ -41,8 +46,11 @@ func encodeIndexResponse(ctx context.Context, w http.ResponseWriter, response in
 
 	ctx = context.WithValue(ctx, "method", "index")
 
+	resp := response.(indexResponse)
+
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"title": "index",
+		"stars": resp.Data["stars"],
+		"list":  resp.Data["list"],
 	})
 }
 
@@ -55,7 +63,9 @@ func encodeError(ctx context.Context, err error, w http.ResponseWriter) {
 	case repository.PostNotFound:
 		w.WriteHeader(http.StatusNotFound)
 		ctx = context.WithValue(ctx, "method", "404")
-		_ = templates.RenderHtml(ctx, w, map[string]interface{}{})
+		_ = templates.RenderHtml(ctx, w, map[string]interface{}{
+			"message": err.Error(),
+		})
 		return
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

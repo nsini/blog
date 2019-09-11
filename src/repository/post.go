@@ -17,6 +17,8 @@ type PostRepository interface {
 	SetReadNum(p *types.Post) error
 	Create(p *types.Post) error
 	Update(p *types.Post) error
+	Stars() (res []*types.Post, err error)
+	Index() (res []*types.Post, err error)
 }
 
 type PostStatus string
@@ -34,6 +36,24 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 	return &post{db: db}
 }
 
+func (c *post) Index() (res []*types.Post, err error) {
+	err = c.db.Where("post_status = ?", PostStatusPublish).
+		Preload("Images").
+		Order(gorm.Expr("push_time DESC")).
+		Limit(10).Find(&res).Error
+
+	return
+}
+
+func (c *post) Stars() (res []*types.Post, err error) {
+	err = c.db.Where("star = 1").
+		Where("post_status = ?", PostStatusPublish).
+		Preload("Images").
+		Order(gorm.Expr("push_time DESC")).
+		Limit(5).Find(&res).Error
+	return
+}
+
 func (c *post) Update(p *types.Post) error {
 	return c.db.Model(p).Where("id = ?", p.ID).Update(p).Error
 }
@@ -44,6 +64,8 @@ func (c *post) Find(id int64) (res *types.Post, err error) {
 	if err = c.db.Model(&p).
 		Preload("User").
 		Preload("Categories").
+		Preload("Tags").
+		Preload("Images").
 		Find(&p, "id = ?", id).Error; err != nil {
 		return nil, PostNotFound
 	}
@@ -58,7 +80,7 @@ func (c *post) FindBy(action int, order, by string, pageSize, offset int) ([]*ty
 	}).Preload("Tags").
 		Where("action = ?", action).
 		Where("push_time IS NOT NULL").
-		Where("post_status = ?", string(PostStatusPublish)).
+		Where("post_status = ?", PostStatusPublish).
 		Order(gorm.Expr(by + " " + order)).
 		Count(&count).
 		Offset(offset).Limit(pageSize).Find(&posts).Error; err != nil {

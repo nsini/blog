@@ -1,22 +1,25 @@
+{% extends "default-layout.html" %}
+
+{% block body %}
+
 <!-- banner start -->
 <div class="am-g am-g-fixed blog-fixed am-u-sm-centered blog-article-margin">
     <div data-am-widget="slider" class="am-slider am-slider-b1" data-am-slider='{&quot;controlNav&quot;:false}'>
         <ul class="am-slides">
-        {{range $k, $post := .starPosts}}
-            <li>
-                <img src="{{replace_image_src $post.Image}}?imageView/1/w/1280/h/320">
-                <div class="blog-slider-desc am-slider-desc ">
-                    <div class="blog-text-center blog-slider-con">
-                        {{/*<span><a href="/post/{{$post.Id}}" class="blog-color">Article &nbsp;</a></span>*/}}
-                        <h1 class="blog-h-margin"><a href="/post/{{$post.Id}}">{{$post.Title}}</a></h1>
-                        <p>{{substr $post.Description 0 24}}
-                        </p>
-                        <span class="blog-bor">{{date $post.PushTime "M/d/Y"}}</span>
-                        <br><br><br><br><br><br><br>
+            {% for post in stars %}
+                <li>
+                    <img src="{{post.image_url}}?imageView2/1/w/1280/h/320/q/75|imageslim">
+                    <div class="blog-slider-desc am-slider-desc ">
+                        <div class="blog-text-center blog-slider-con">
+                            <h1 class="blog-h-margin"><a href="/post/{{post.id}}">{{post.title}}</a></h1>
+                            <p>{{post.desc}}
+                            </p>
+                            <span class="blog-bor">{{post.publish_at}}</span>
+                            <br><br><br><br><br><br><br>
+                        </div>
                     </div>
-                </div>
-            </li>
-        {{end}}
+                </li>
+            {%endfor%}
 
         </ul>
     </div>
@@ -26,28 +29,25 @@
 <!-- content srart -->
 <div class="am-g am-g-fixed blog-fixed">
     <div class="am-u-md-8 am-u-sm-12">
-
-    {{range $k, $post := .posts}}
-
-        <article class="am-g blog-entry-article">
-            <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-img">
-                <a href="/post/{{$post.Id}}">
-                    <img src="{{replace_image_src $post.Image}}?imageView/1/w/1280/h/720" alt="" class="am-u-sm-12">
-                </a>
-            </div>
-            <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-text">
-                <span><a href="" class="blog-color">article &nbsp;</a></span>
-                <span> @嘟嘟噜 &nbsp;</span>
-                <span>{{date $post.PushTime "M/d/Y"}}</span>
-                <h1><a href="/post/{{$post.Id}}">{{$post.Title}}</a></h1>
-                <p>{{substr $post.Description 0 30}}</p>
-                <p><a href="/post/{{$post.Id}}" class="blog-continue">continue reading</a></p>
-            </div>
-        </article>
-    {{end}}
+        {% for post in list %}
+            <article class="am-g blog-entry-article">
+                <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-img">
+                    <a href="/post/{{post.id}}">
+                        <img src="{{post.image_url}}?imageView2/1/w/400/h/200/q/75|imageslim" alt="" class="am-u-sm-12">
+                    </a>
+                </div>
+                <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-text">
+                    <span><a href="" class="blog-color">article &nbsp;</a></span>
+                    <span> @{{post.author}} &nbsp;</span>
+                    <span>{{post.publish_at}}</span>
+                    <h1><a href="/post/{{post.id}}">{{post.title}}</a></h1>
+                    <p>{{post.desc}}</p>
+                    <p><a href="/post/{{post.id}}" class="blog-continue">continue reading</a></p>
+                </div>
+            </article>
+        {% endfor %}
         <ul class="am-pagination">
-        {{/*<li class="am-pagination-prev"><a href="">&laquo; Prev</a></li>*/}}
-            <li class="am-pagination-next"><a href="/posts/2?s=home">More &raquo;</a></li>
+            <li class="am-pagination-next"><a href="/post/2?s=home">More &raquo;</a></li>
         </ul>
     </div>
 
@@ -77,16 +77,17 @@
                 <a href="" class="blog-tag">码农</a>
                 <a href="" class="blog-tag">Gopher</a>
                 <a href="" class="blog-tag">开源</a>
+                <a href="" class="blog-tag">Kubernetes</a>
+                <a href="" class="blog-tag">Docker</a>
             </div>
         </div>
         <div class="blog-sidebar-widget blog-bor">
             <h2 class="blog-title"><span>么么哒</span></h2>
-            <ul class="am-list">
-                <li><a href="#">每个人都有一个死角， 自己走不出来，别人也闯不进去。</a></li>
                 <li><a href="#">多赚点钱，赚的钱多了，很多事自然就变了。</a></li>
-                <li><a href="#">每个人都有一道伤口， 或深或浅，盖上布，以为不存在。</a></li>
             </ul>
         </div>
     </div>
 </div>
 <!-- content end -->
+
+{% endblock %}

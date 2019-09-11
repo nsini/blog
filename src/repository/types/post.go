@@ -32,6 +32,7 @@ type Post struct {
 	User        User       `gorm:"ForeignKey:id;AssociationForeignKey:UserId"`
 	Tags        []Tag      `gorm:"many2many:post_tags;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:tag_id;jointable_foreignkey:post_id;" json:"tags"`
 	Categories  []Category `gorm:"many2many:post_categories;foreignkey:id;association_foreignkey:id;association_jointable_foreignkey:category_id;jointable_foreignkey:post_id;" json:"categories"`
+	Images      []Image    `gorm:"foreignkey:post_id" json:"images"`
 }
 
 func (p *Post) TableName() string {

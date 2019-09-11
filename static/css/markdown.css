@@ -1,431 +1,43 @@
-/*.markdown-body :root {*/
-/*    --side-bar-bg-color: #fafafa;*/
-/*    --control-text-color: #777;*/
-/*}*/
-
-/*@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);*/
-
-/*@font-face {*/
-/*    font-family: 'Open Sans';*/
-/*    font-style: normal;*/
-/*    font-weight: normal;*/
-/*    src: local('Open Sans Regular'),url('./github/400.woff') format('woff');*/
-/*}*/
-
-/*@font-face {*/
-/*    font-family: 'Open Sans';*/
-/*    font-style: italic;*/
-/*    font-weight: normal;*/
-/*    src: local('Open Sans Italic'),url('./github/400i.woff') format('woff');*/
-/*}*/
-
-/*@font-face {*/
-/*    font-family: 'Open Sans';*/
-/*    font-style: normal;*/
-/*    font-weight: bold;*/
-/*    src: local('Open Sans Bold'),url('./github/700.woff') format('woff');*/
-/*}*/
-
-/*@font-face {*/
-/*    font-family: 'Open Sans';*/
-/*    font-style: italic;*/
-/*    font-weight: bold;*/
-/*    src: local('Open Sans Bold Italic'),url('./github/700i.woff') format('woff');*/
-/*}*/
-
-/*.markdown-body html {*/
-/*    font-size: 16px;*/
-/*}*/
-
-/*.markdown-body body {*/
-/*    font-family: "Open Sans","Clear Sans","Helvetica Neue",Helvetica,Arial,sans-serif;*/
-/*    color: rgb(51, 51, 51);*/
-/*    line-height: 1.6;*/
-/*    color:#3e3e3e;*/
-/*}*/
-
-/*.markdown-body #write {*/
-/*    max-width: 860px;*/
-/*    margin: 0 auto;*/
-/*    padding: 30px;*/
-/*    padding-bottom: 100px;*/
-/*}*/
-/*.markdown-body #write > ul:first-child,*/
-/*.markdown-body #write > ol:first-child{*/
-/*    margin-top: 30px;*/
-/*}*/
-
-/*.markdown-body a {*/
-/*    color: #4183C4;*/
-/*}*/
-/*.markdown-body h1,*/
-/*h2,*/
-/*h3,*/
-/*h4,*/
-/*h5,*/
-/*h6 {*/
-/*    position: relative;*/
-/*    margin-top: 1rem;*/
-/*    margin-bottom: 1rem;*/
-/*    font-weight: bold;*/
-/*    line-height: 1.4;*/
-/*    cursor: text;*/
-/*}*/
-/*.markdown-body h1:hover a.anchor,*/
-/*h2:hover a.anchor,*/
-/*h3:hover a.anchor,*/
-/*h4:hover a.anchor,*/
-/*h5:hover a.anchor,*/
-/*h6:hover a.anchor {*/
-/*    !*background: url("../../images/modules/styleguide/para.png") no-repeat 10px center;*!*/
-/*    text-decoration: none;*/
-/*}*/
-/*.markdown-body h1 tt,*/
-/*h1 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h2 tt,*/
-/*h2 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h3 tt,*/
-/*h3 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h4 tt,*/
-/*h4 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h5 tt,*/
-/*h5 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h6 tt,*/
-/*h6 code {*/
-/*    font-size: inherit;*/
-/*}*/
-/*.markdown-body h1 {*/
-/*    padding-bottom: .3em;*/
-/*    font-size: 2.25em;*/
-/*    line-height: 1.2;*/
-/*    border-bottom: 1px solid #eee;*/
-/*}*/
-/*.markdown-body h2 {*/
-/*    padding-bottom: .3em;*/
-/*    font-size: 1.75em;*/
-/*    line-height: 1.225;*/
-/*    border-bottom: 1px solid #eee;*/
-/*}*/
-/*.markdown-body h3 {*/
-/*    font-size: 1.5em;*/
-/*    line-height: 1.43;*/
-/*}*/
-/*.markdown-body h4 {*/
-/*    font-size: 1.25em;*/
-/*}*/
-/*.markdown-body h5 {*/
-/*    font-size: 1em;*/
-/*}*/
-/*.markdown-body h6 {*/
-/*    font-size: 1em;*/
-/*    color: #777;*/
-/*}*/
-/*.markdown-body p,*/
-/*blockquote,*/
-/*ul,*/
-/*ol,*/
-/*dl,*/
-/*table{*/
-/*    margin: 0.8em 0;*/
-/*}*/
-/*.markdown-body li>ol,*/
-/*li>ul {*/
-/*    margin: 0 0;*/
-/*}*/
-/*.markdown-body hr {*/
-/*    height: 2px;*/
-/*    padding: 0;*/
-/*    margin: 16px 0;*/
-/*    background-color: #e7e7e7;*/
-/*    border: 0 none;*/
-/*    overflow: hidden;*/
-/*    box-sizing: content-box;*/
-/*}*/
-
-/*.markdown-body li p.first {*/
-/*    display: inline-block;*/
-/*}*/
-/*.markdown-body ul,*/
-/*ol {*/
-/*    padding-left: 30px;*/
-/*}*/
-/*.markdown-body ul:first-child,*/
-/*ol:first-child {*/
-/*    margin-top: 0;*/
-/*}*/
-/*.markdown-body ul:last-child,*/
-/*ol:last-child {*/
-/*    margin-bottom: 0;*/
-/*}*/
-/*.markdown-body blockquote {*/
-/*    border-left: 4px solid #dfe2e5;*/
-/*    padding: 0 15px;*/
-/*    color: #777777;*/
-/*}*/
-/*.markdown-body blockquote blockquote {*/
-/*    padding-right: 0;*/
-/*}*/
-/*.markdown-body table {*/
-/*    padding: 0;*/
-/*    word-break: initial;*/
-/*}*/
-/*.markdown-body table tr {*/
-/*    border-top: 1px solid #dfe2e5;*/
-/*    margin: 0;*/
-/*    padding: 0;*/
-/*}*/
-/*.markdown-body table tr:nth-child(2n),*/
-/*thead {*/
-/*    background-color: #f8f8f8;*/
-/*}*/
-/*.markdown-body table tr th {*/
-/*    font-weight: bold;*/
-/*    border: 1px solid #dfe2e5;*/
-/*    border-bottom: 0;*/
-/*    text-align: left;*/
-/*    margin: 0;*/
-/*    padding: 6px 13px;*/
-/*}*/
-/*.markdown-body table tr td {*/
-/*    border: 1px solid #dfe2e5;*/
-/*    text-align: left;*/
-/*    margin: 0;*/
-/*    padding: 6px 13px;*/
-/*}*/
-/*.markdown-body table tr th:first-child,*/
-/*table tr td:first-child {*/
-/*    margin-top: 0;*/
-/*}*/
-/*.markdown-body table tr th:last-child,*/
-/*table tr td:last-child {*/
-/*    margin-bottom: 0;*/
-/*}*/
-
-/*.markdown-body .CodeMirror-lines {*/
-/*    padding-left: 4px;*/
-/*}*/
-
-/*.markdown-body .code-tooltip {*/
-/*    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);*/
-/*    border-top: 1px solid #eef2f2;*/
-/*}*/
-
-/*.markdown-body .md-fences,*/
-/*code,*/
-/*tt {*/
-/*    border: 1px solid #e7eaed;*/
-/*    background-color: #f8f8f8;*/
-/*    border-radius: 3px;*/
-/*    padding: 0;*/
-/*    padding: 2px 4px 0px 4px;*/
-/*    font-size: 0.9em;*/
-/*}*/
-
-/*.markdown-body code {*/
-/*    background-color: #f3f4f4;*/
-/*    padding: 0 4px 2px 4px;*/
-/*}*/
-
-/*.markdown-body .md-fences {*/
-/*    margin-bottom: 15px;*/
-/*    margin-top: 15px;*/
-/*    padding: 0.2em 1em;*/
-/*    padding-top: 8px;*/
-/*    padding-bottom: 6px;*/
-/*}*/
-
-
-/*.markdown-body .md-task-list-item > input {*/
-/*    margin-left: -1.3em;*/
-/*}*/
-
-/*@media print {*/
-/*    html {*/
-/*        font-size: 13px;*/
-/*    }*/
-/*    table,*/
-/*    pre {*/
-/*        page-break-inside: avoid;*/
-/*    }*/
-/*    pre {*/
-/*        word-wrap: break-word;*/
-/*    }*/
-/*}*/
-
-/*.markdown-body .md-fences {*/
-/*    background-color: #f8f8f8;*/
-/*}*/
-/*.markdown-body #write pre.md-meta-block {*/
-/*    padding: 1rem;*/
-/*    font-size: 85%;*/
-/*    line-height: 1.45;*/
-/*    background-color: #f7f7f7;*/
-/*    border: 0;*/
-/*    border-radius: 3px;*/
-/*    color: #777777;*/
-/*    margin-top: 0 !important;*/
-/*}*/
-
-/*.markdown-body .mathjax-block>.code-tooltip {*/
-/*    bottom: .375rem;*/
-/*}*/
-
-/*.markdown-body .md-mathjax-midline {*/
-/*    background: #fafafa;*/
-/*}*/
-
-/*.markdown-body #write>h3.md-focus:before{*/
-/*    left: -1.5625rem;*/
-/*    top: .375rem;*/
-/*}*/
-/*.markdown-body #write>h4.md-focus:before{*/
-/*    left: -1.5625rem;*/
-/*    top: .285714286rem;*/
-/*}*/
-/*.markdown-body #write>h5.md-focus:before{*/
-/*    left: -1.5625rem;*/
-/*    top: .285714286rem;*/
-/*}*/
-/*.markdown-body #write>h6.md-focus:before{*/
-/*    left: -1.5625rem;*/
-/*    top: .285714286rem;*/
-/*}*/
-/*.markdown-body .md-image>.md-meta {*/
-/*    !*border: 1px solid #ddd;*!*/
-/*    border-radius: 3px;*/
-/*    padding: 2px 0px 0px 4px;*/
-/*    font-size: 0.9em;*/
-/*    color: inherit;*/
-/*}*/
-
-/*.markdown-body .md-tag {*/
-/*    color: #a7a7a7;*/
-/*    opacity: 1;*/
-/*}*/
-
-/*.markdown-body .md-toc {*/
-/*    margin-top:20px;*/
-/*    padding-bottom:20px;*/
-/*}*/
-
-/*.markdown-body .sidebar-tabs {*/
-/*    border-bottom: none;*/
-/*}*/
-
-/*.markdown-body #typora-quick-open {*/
-/*    border: 1px solid #ddd;*/
-/*    background-color: #f8f8f8;*/
-/*}*/
-
-/*.markdown-body #typora-quick-open-item {*/
-/*    background-color: #FAFAFA;*/
-/*    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;*/
-/*    border-style: solid;*/
-/*    border-width: 1px;*/
-/*}*/
-
-/*!** focus mode *!*/
-/*.markdown-body .on-focus-mode blockquote {*/
-/*    border-left-color: rgba(85, 85, 85, 0.12);*/
-/*}*/
-
-/*.markdown-body header, .context-menu, .megamenu-content, footer{*/
-/*    font-family: "Segoe UI", "Arial", sans-serif;*/
-/*}*/
-
-/*.file-node-content:hover .file-node-icon,*/
-/*.file-node-content:hover .file-node-open-state{*/
-/*    visibility: visible;*/
-/*}*/
-
-/*.mac-seamless-mode #typora-sidebar {*/
-/*    background-color: #fafafa;*/
-/*    background-color: var(--side-bar-bg-color);*/
-/*}*/
-
-/*.md-lang {*/
-/*    color: #b4654d;*/
-/*}*/
-
-/*.html-for-mac .context-menu {*/
-/*    --item-hover-bg-color: #E6F0FE;*/
-/*}*/
-
-/*#md-notification .btn {*/
-/*    border: 0;*/
-/*}*/
-
-/*.dropdown-menu .divider {*/
-/*    border-color: #e5e5e5;*/
-/*}*/
-/*.markdown-body p {*/
-/*    margin: 0.8em 0.5em;*/
-/*    line-height: 1.5em;*/
-/*}*/
-/*.markdown-body h2 {*/
-/*    padding-bottom: .3em;*/
-/*    font-size: 1.5em;*/
-/*    line-height: 1.225;*/
-/*    border-bottom: 1px solid #FFBF00;*/
-/*    text-align: center*/
-/*}*/
-/*.markdown-body blockquote {*/
-/*    border-left: 4px solid #FFBF00;*/
-/*    padding: 0 15px;*/
-/*    color: #777777;*/
-/*}*/
-
-
-:root {
+.markdown-body > :root {
     --side-bar-bg-color: #fafafa;
     --control-text-color: #777;
 }
 
-@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+.markdown-body > @include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
 
-@font-face {
+.markdown-body > @font-face {
     font-family: 'Open Sans';
     font-style: normal;
     font-weight: normal;
     src: local('Open Sans Regular'),url('./github/400.woff') format('woff');
 }
 
-@font-face {
+.markdown-body > @font-face {
     font-family: 'Open Sans';
     font-style: italic;
     font-weight: normal;
     src: local('Open Sans Italic'),url('./github/400i.woff') format('woff');
 }
 
-@font-face {
+.markdown-body > @font-face {
     font-family: 'Open Sans';
     font-style: normal;
     font-weight: bold;
     src: local('Open Sans Bold'),url('./github/700.woff') format('woff');
 }
 
-@font-face {
+.markdown-body > @font-face {
     font-family: 'Open Sans';
     font-style: italic;
     font-weight: bold;
     src: local('Open Sans Bold Italic'),url('./github/700i.woff') format('woff');
 }
 
-html {
+.markdown-body > html {
     font-size: 16px;
 }
 
-body {
+.markdown-body > body {
     font-family: "Open Sans","Clear Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
     color: rgb(51, 51, 51);
     line-height: 1.6;
@@ -443,15 +55,15 @@ body {
     margin-top: 30px;
 }
 
-a {
+.markdown-body > a {
     color: #4183C4;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+.markdown-body > h1,
+.markdown-body > h2,
+.markdown-body > h3,
+.markdown-body > h4,
+.markdown-body > h5,
+.markdown-body > h6 {
     position: relative;
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -459,78 +71,78 @@ h6 {
     line-height: 1.4;
     cursor: text;
 }
-h1:hover a.anchor,
-h2:hover a.anchor,
-h3:hover a.anchor,
-h4:hover a.anchor,
-h5:hover a.anchor,
-h6:hover a.anchor {
+.markdown-body > h1:hover a.anchor,
+.markdown-body > h2:hover a.anchor,
+.markdown-body > h3:hover a.anchor,
+.markdown-body > h4:hover a.anchor,
+.markdown-body > h5:hover a.anchor,
+.markdown-body > h6:hover a.anchor {
     /*background: url("../../images/modules/styleguide/para.png") no-repeat 10px center;*/
     text-decoration: none;
 }
-h1 tt,
-h1 code {
+.markdown-body > h1 tt,
+.markdown-body > h1 code {
     font-size: inherit;
 }
-h2 tt,
-h2 code {
+.markdown-body > h2 tt,
+.markdown-body > h2 code {
     font-size: inherit;
 }
-h3 tt,
-h3 code {
+.markdown-body > h3 tt,
+.markdown-body > h3 code {
     font-size: inherit;
 }
-h4 tt,
-h4 code {
+.markdown-body > h4 tt,
+.markdown-body > h4 code {
     font-size: inherit;
 }
-h5 tt,
-h5 code {
+.markdown-body > h5 tt,
+.markdown-body > h5 code {
     font-size: inherit;
 }
-h6 tt,
-h6 code {
+.markdown-body > h6 tt,
+.markdown-body > h6 code {
     font-size: inherit;
 }
-h1 {
+.markdown-body > h1 {
     padding-bottom: .3em;
     font-size: 2.25em;
     line-height: 1.2;
     border-bottom: 1px solid #eee;
 }
-h2 {
+.markdown-body > h2 {
     padding-bottom: .3em;
     font-size: 1.75em;
     line-height: 1.225;
     border-bottom: 1px solid #eee;
 }
-h3 {
+.markdown-body > h3 {
     font-size: 1.5em;
     line-height: 1.43;
 }
-h4 {
+.markdown-body > h4 {
     font-size: 1.25em;
 }
-h5 {
+.markdown-body > h5 {
     font-size: 1em;
 }
-h6 {
+.markdown-body > h6 {
     font-size: 1em;
     color: #777;
 }
-p,
-blockquote,
-ul,
-ol,
-dl,
-table{
+.markdown-body > p,
+.markdown-body > blockquote,
+.markdown-body > ul,
+.markdown-body > ol,
+.markdown-body > dl,
+.markdown-body > table{
     margin: 0.8em 0;
 }
-li>ol,
-li>ul {
+.markdown-body > li>ol,
+.markdown-body > li>ul {
     margin: 0 0;
 }
-hr {
+.markdown-body > hr {
     height: 2px;
     padding: 0;
     margin: 16px 0;
@@ -540,43 +152,43 @@ hr {
     box-sizing: content-box;
 }
 
-li p.first {
+.markdown-body > li p.first {
     display: inline-block;
 }
-ul,
-ol {
+.markdown-body > ul,
+.markdown-body > ol {
     padding-left: 30px;
 }
-ul:first-child,
-ol:first-child {
+.markdown-body > ul:first-child,
+.markdown-body > ol:first-child {
     margin-top: 0;
 }
-ul:last-child,
-ol:last-child {
+.markdown-body > ul:last-child,
+.markdown-body > ol:last-child {
     margin-bottom: 0;
 }
-blockquote {
+.markdown-body > blockquote {
     border-left: 4px solid #dfe2e5;
     padding: 0 15px;
     color: #777777;
 }
-blockquote blockquote {
+.markdown-body > blockquote blockquote {
     padding-right: 0;
 }
-table {
+.markdown-body > table {
     padding: 0;
     word-break: initial;
 }
-table tr {
+.markdown-body > table tr {
     border-top: 1px solid #dfe2e5;
     margin: 0;
     padding: 0;
 }
-table tr:nth-child(2n),
-thead {
+.markdown-body > table tr:nth-child(2n),
+.markdown-body > thead {
     background-color: #f8f8f8;
 }
-table tr th {
+.markdown-body > table tr th {
     font-weight: bold;
     border: 1px solid #dfe2e5;
     border-bottom: 0;
@@ -584,18 +196,18 @@ table tr th {
     margin: 0;
     padding: 6px 13px;
 }
-table tr td {
+.markdown-body > table tr td {
     border: 1px solid #dfe2e5;
     text-align: left;
     margin: 0;
     padding: 6px 13px;
 }
-table tr th:first-child,
-table tr td:first-child {
+.markdown-body > table tr th:first-child,
+.markdown-body > table tr td:first-child {
     margin-top: 0;
 }
-table tr th:last-child,
-table tr td:last-child {
+.markdown-body > table tr th:last-child,
+.markdown-body > table tr td:last-child {
     margin-bottom: 0;
 }
 
@@ -609,8 +221,8 @@ table tr td:last-child {
 }
 
 .md-fences,
-code,
-tt {
+.markdown-body > code,
+.markdown-body > tt {
     border: 1px solid #e7eaed;
     background-color: #f8f8f8;
     border-radius: 3px;
@@ -619,7 +231,7 @@ tt {
     font-size: 0.9em;
 }
 
-code {
+.markdown-body > code {
     background-color: #f3f4f4;
     padding: 0 4px 2px 4px;
 }
@@ -638,14 +250,14 @@ code {
 }
 
 @media print {
-    html {
+    .markdown-body > html {
         font-size: 13px;
     }
-    table,
-    pre {
+    .markdown-body > table,
+    .markdown-body > pre {
         page-break-inside: avoid;
     }
-    pre {
+    .markdown-body > pre {
         word-wrap: break-word;
     }
 }
@@ -727,7 +339,7 @@ code {
     border-left-color: rgba(85, 85, 85, 0.12);
 }
 
-header, .context-menu, .megamenu-content, footer{
+.markdown-body > header, .context-menu, .megamenu-content, footer{
     font-family: "Segoe UI", "Arial", sans-serif;
 }
 
@@ -756,18 +368,18 @@ header, .context-menu, .megamenu-content, footer{
 .dropdown-menu .divider {
     border-color: #e5e5e5;
 }
-p {
+.markdown-body > p {
     margin: 0.8em 0.5em;
     line-height: 1.5em;
 }
-h2 {
+.markdown-body > h2 {
     padding-bottom: .3em;
     font-size: 1.5em;
     line-height: 1.225;
     border-bottom: 1px solid #FFBF00;
     text-align: center
 }
-blockquote {
+.markdown-body > blockquote {
     border-left: 4px solid #FFBF00;
     padding: 0 15px;
     color: #777777;
