@@ -39,6 +39,7 @@ func NewPostRepository(db *gorm.DB) PostRepository {
 func (c *post) Index() (res []*types.Post, err error) {
 	err = c.db.Where("post_status = ?", PostStatusPublish).
 		Preload("Images").
+		Preload("User").
 		Order(gorm.Expr("push_time DESC")).
 		Limit(10).Find(&res).Error
 
