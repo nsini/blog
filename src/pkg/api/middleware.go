@@ -32,6 +32,8 @@ func checkAuthMiddleware(logger log.Logger, repository repository.Repository, sa
 			username := req.Params.Param[1].Value.String
 			password := req.Params.Param[2].Value.String
 
+			_ = level.Debug(logger).Log("username", username, "password", password)
+
 			if username == "" || password == "" {
 				_ = level.Error(logger).Log("username or password:", "is nil")
 				return nil, ErrorASD
@@ -58,6 +60,8 @@ func imageCheckAuthMiddleware(logger log.Logger, repository repository.Repositor
 				_ = level.Error(logger).Log("username or password:", "is nil")
 				return nil, ErrorASD
 			}
+
+			_ = level.Debug(logger).Log("username", req.Username, "password", req.Password)
 
 			user, err := repository.User().FindAndPwd(req.Username, encode.EncodePassword(req.Password, salt))
 			if err != nil {
