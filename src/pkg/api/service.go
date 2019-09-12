@@ -132,8 +132,12 @@ func (c *service) UploadImage(ctx context.Context, image uploadImageRequest) (re
 	fileName := time.Now().Format("20060102") + "-" + fileSha + extName
 	fileFullPath := filePath + fileName
 
-	if err = os.Rename("/tmp/"+image.Image.Filename, fileFullPath); err != nil {
-		_ = c.logger.Log("os", "Rename", "err", err.Error())
+	//if err = os.Rename("/tmp/"+image.Image.Filename, fileFullPath); err != nil {
+	//	_ = level.Error(c.logger).Log("os", "Rename", "err", err.Error())
+	//	return
+	//}
+	if err = moveFile("/tmp/"+image.Image.Filename, fileFullPath); err != nil {
+		_ = level.Error(c.logger).Log("os", "moveFile", "err", err.Error())
 		return
 	}
 
@@ -149,7 +153,7 @@ func (c *service) UploadImage(ctx context.Context, image uploadImageRequest) (re
 	}
 	// 存入数据库
 	if err = c.repository.Image().AddImage(saveImage); err != nil {
-		_ = c.logger.Log("c.image", "AddImage", "err", err.Error())
+		_ = level.Error(c.logger).Log("c.image", "AddImage", "err", err.Error())
 		return
 	}
 
@@ -641,4 +645,32 @@ func NewService(logger log.Logger, cf *config.Config, repository repository.Repo
 		logger:     logger,
 		config:     cf,
 	}
+}
+
+func moveFile(sourcePath, destPath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open source file: %s", err)
+	}
+
+	defer func() {
+		_ = inputFile.Close()
+	}()
+
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open dest file: %s", err)
+	}
+	defer func() {
+		_ = outputFile.Close()
+	}()
+	_, err = io.Copy(outputFile, inputFile)
+	if err != nil {
+		return fmt.Errorf("Writing to output file failed: %s", err)
+	}
+	err = os.Remove(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Failed removing original file: %s", err)
+	}
+	return nil
 }
