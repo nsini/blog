@@ -2,7 +2,6 @@ package home
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/nsini/blog/src/config"
@@ -68,7 +67,6 @@ func (c *service) Index(ctx context.Context) (rs map[string]interface{}, err err
 		if len(v.Images) > 0 {
 			imgUrl = c.config.GetString("server", "image_domain") + "/" + v.Images[0].ImagePath
 		}
-		fmt.Println(imgUrl)
 		posts = append(posts, map[string]interface{}{
 			"content":    v.Content,
 			"title":      v.Title,

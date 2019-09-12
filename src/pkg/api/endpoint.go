@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/pkg/errors"
 	"strconv"
@@ -31,13 +30,8 @@ func makePostEndpoint(s Service) endpoint.Endpoint {
 		var err error
 		var resp interface{}
 
-		// todo 进行token验证
-		fmt.Println("username", req.Params.Param[1].Value.String)
-		fmt.Println("password", req.Params.Param[2].Value.String)
-
 		switch PostMethod(req.MethodName) {
 		case GetUsersBlogs:
-			// todo check response
 			{
 				resp = &getUsersBlogsResponse{
 					Params: params{

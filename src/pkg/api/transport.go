@@ -9,6 +9,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
 	"io/ioutil"
 	"net/http"
@@ -21,7 +22,7 @@ type endpoints struct {
 	PostEndpoint endpoint.Endpoint
 }
 
-func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
+func MakeHandler(svc Service, logger kitlog.Logger, repository repository.Repository, cf *config.Config) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeXmlError),
@@ -33,7 +34,7 @@ func MakeHandler(svc Service, logger kitlog.Logger) http.Handler {
 	}
 
 	ems := []endpoint.Middleware{
-		// todo 中间件验证
+		checkAuthMiddleware(logger, repository, cf.GetString("server", "app_key")),
 	}
 
 	mw := map[string][]endpoint.Middleware{

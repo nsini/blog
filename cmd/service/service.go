@@ -171,7 +171,7 @@ func start() {
 	mux.Handle("/post", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
-	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger))
+	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger, store, cf))
 	mux.Handle("/board", board.MakeHandler(boardSvc, httpLogger))
 	mux.Handle("/reward", reward.MakeHandler(httpLogger))
 	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))

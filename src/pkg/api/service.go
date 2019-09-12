@@ -311,9 +311,7 @@ func (c *service) MediaObject(ctx context.Context, req postRequest) (rs *getPost
 }
 
 func (c *service) Post(ctx context.Context, req postRequest) (rs newPostResponse, err error) {
-
-	//ctx.Value()
-	userId := int64(1) // todo 从context 拿
+	userId := ctx.Value(UserIdContext).(int64)
 
 	_ = c.logger.Log("methodName", req.MethodName, "username", req.Params.Param[1].Value.String, "password", req.Params.Param[2].Value.String)
 
