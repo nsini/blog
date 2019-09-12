@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	kitlogrus "github.com/go-kit/kit/log/logrus"
 	"github.com/go-kit/kit/metrics/prometheus"
 	"github.com/jinzhu/gorm"
 	"github.com/nsini/blog/src/cmd"
 	"github.com/nsini/blog/src/config"
+	"github.com/nsini/blog/src/logging"
 	"github.com/nsini/blog/src/mysql"
 	"github.com/nsini/blog/src/pkg/about"
 	"github.com/nsini/blog/src/pkg/api"
@@ -91,7 +93,15 @@ func start() {
 		panic(err)
 	}
 
-	logger = log.NewLogfmtLogger(log.StdlibWriter{})
+	if cf.GetString("server", "logs_path") != "" {
+		logrusLogger, err := logging.LogrusLogger(cf.GetString("server", "logs_path"))
+		if err != nil {
+			panic(err)
+		}
+		logger = kitlogrus.NewLogrusLogger(logrusLogger)
+	} else {
+		logger = log.NewLogfmtLogger(log.StdlibWriter{})
+	}
 	logger = log.With(logger, "caller", log.DefaultCaller)
 	logger = level.NewFilter(logger, logLevel(cf.GetString("server", "log_level")))
 
