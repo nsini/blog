@@ -9,7 +9,9 @@
         {% for post in list %}
         <article class="am-g blog-entry-article">
             <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-img">
-                <img src="{{post.image_url}}?imageView2/1/w/600/h/320/q/75|imageslim" alt="" class="am-u-sm-12">
+                <a href="/post/{{post.id}}">
+                    <img src="{{post.image_url}}?imageView2/1/w/600/h/320/q/75|imageslim" alt="" class="am-u-sm-12">
+                </a>
             </div>
             <div class="am-u-lg-6 am-u-md-12 am-u-sm-12 blog-entry-text">
                 <span><a href="/post/{{post.id}}" class="blog-color">article &nbsp;</a></span>
