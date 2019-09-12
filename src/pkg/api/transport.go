@@ -80,6 +80,11 @@ func decodeUploadImageRequest(_ context.Context, r *http.Request) (interface{}, 
 	username := r.Header.Get("Username")
 	password := r.Header.Get("Password")
 
+	if username == "" && password == "" {
+		username = r.Form.Get("username")
+		password = r.Form.Get("password")
+	}
+
 	reader, err := r.MultipartReader()
 	if err != nil {
 		return nil, err
