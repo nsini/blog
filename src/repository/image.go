@@ -10,6 +10,7 @@ type ImageRepository interface {
 	FindByPostIds(ids []int64) (res []*types.Image, err error)
 	AddImage(img *types.Image) error
 	ExistsImageByMd5(val string) bool
+	FindImageByMd5(val string) (img *types.Image, err error)
 }
 
 type image struct {
@@ -49,4 +50,10 @@ func (c *image) ExistsImageByMd5(val string) bool {
 		return true
 	}
 	return false
+}
+
+func (c *image) FindImageByMd5(val string) (img *types.Image, err error) {
+	var rs types.Image
+	err = c.db.Where("md5 = ?", val).First(&rs).Error
+	return &rs, err
 }

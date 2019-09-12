@@ -40,6 +40,9 @@ type Service interface {
 
 	// 上传流媒体类型的文件
 	MediaObject(ctx context.Context, req postRequest) (rs *getPostResponse, err error)
+
+	// 上传图片资源
+	UploadImage(ctx context.Context, image uploadImageRequest) (res imageResponse, err error)
 }
 
 type service struct {
@@ -64,6 +67,104 @@ const (
 	MediaName       PostFields = "name"
 	MediaType       PostFields = "type"
 )
+
+func (c *service) UploadImage(ctx context.Context, image uploadImageRequest) (res imageResponse, err error) {
+
+	if err = ioutil.WriteFile("/tmp/"+image.Image.Filename, image.Image.Body, 0666); err != nil {
+		_ = level.Error(c.logger).Log("ioutil", "WriteFile", "err", err.Error())
+		return
+	}
+
+	// 先存，再验证，失败再删除
+	f, err := os.Open("/tmp/" + image.Image.Filename)
+	if err != nil {
+		_ = level.Error(c.logger).Log("os", "Open", "err", err.Error())
+		return
+	}
+
+	defer func() {
+		if err = f.Close(); err != nil {
+			_ = level.Error(c.logger).Log("f", "Close", "err", err.Error())
+		}
+	}()
+
+	md5h := md5.New()
+	if _, err = io.Copy(md5h, f); err != nil {
+		_ = level.Error(c.logger).Log("io", "Copy", "err", err.Error())
+		return
+	}
+
+	fileSha := fmt.Sprintf("%x", md5h.Sum([]byte("")))
+
+	if dbImg, err := c.repository.Image().FindImageByMd5(fileSha); err == nil && dbImg != nil {
+		_ = level.Error(c.logger).Log("c.image", "ExistsImageByMd5", "err", "file is exists.")
+		size, _ := strconv.ParseInt(dbImg.ImageSize, 10, 64)
+		return imageResponse{
+			Filename:  dbImg.ClientOriginalMame,
+			Storename: dbImg.ImageName,
+			Size:      size,
+			Path:      dbImg.ImagePath,
+			Hash:      dbImg.Md5,
+			Timestamp: dbImg.CreatedAt.Unix(),
+			Url:       c.config.GetString("server", "image_domain") + "/" + dbImg.ImagePath + c.config.GetString("server", "image_suffix"),
+		}, nil
+	}
+
+	if err != nil {
+		_ = level.Error(c.logger).Log("c.image", "ExistsImageByMd5", "err", "file is exists.")
+		return
+	}
+
+	simPath := time.Now().Format("2006/01/") + fileSha[len(fileSha)-5:len(fileSha)-3] + "/" + fileSha[24:26] + "/" + fileSha[16:17] + fileSha[12:13] + "/"
+	filePath := c.config.GetString(config.SectionServer, "image_path") + "/" + simPath
+	if !file.PathExist(filePath) {
+		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
+			_ = level.Error(c.logger).Log("os", "MkdirAll", "err", err.Error())
+			return
+		}
+	}
+
+	var extName = ".jpg" // image.Image.Header[""]
+	if exts, err := mime.ExtensionsByType(image.Image.Header.Get("Content-Type")); err == nil {
+		extName = exts[0]
+	}
+
+	fileName := time.Now().Format("20060102") + "-" + fileSha + extName
+	fileFullPath := filePath + fileName
+
+	if err = os.Rename("/tmp/"+image.Image.Filename, fileFullPath); err != nil {
+		_ = c.logger.Log("os", "Rename", "err", err.Error())
+		return
+	}
+
+	saveImage := &types.Image{
+		ImageName:          fileName,
+		Extension:          extName,
+		ImagePath:          simPath + fileName,
+		RealPath:           fileFullPath,
+		ImageStatus:        0,
+		ImageSize:          strconv.Itoa(int(image.Image.Size)),
+		Md5:                fileSha,
+		ClientOriginalMame: image.Image.Filename,
+	}
+	// 存入数据库
+	if err = c.repository.Image().AddImage(saveImage); err != nil {
+		_ = c.logger.Log("c.image", "AddImage", "err", err.Error())
+		return
+	}
+
+	size, _ := strconv.ParseInt(saveImage.ImageSize, 10, 64)
+	return imageResponse{
+		Filename:  saveImage.ClientOriginalMame,
+		Storename: saveImage.ImageName,
+		Size:      size,
+		Path:      saveImage.ImagePath,
+		Hash:      saveImage.Md5,
+		Timestamp: saveImage.CreatedAt.Unix(),
+		Url:       c.config.GetString("server", "image_domain") + "/" + saveImage.ImagePath + c.config.GetString("server", "image_suffix"),
+	}, nil
+
+}
 
 func (c *service) Authentication(ctx context.Context, req postRequest) (rs getUsersBlogsResponse, err error) {
 

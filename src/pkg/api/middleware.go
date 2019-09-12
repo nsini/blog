@@ -49,3 +49,25 @@ func checkAuthMiddleware(logger log.Logger, repository repository.Repository, sa
 		}
 	}
 }
+
+func imageCheckAuthMiddleware(logger log.Logger, repository repository.Repository, salt string) endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			req := request.(uploadImageRequest)
+			if req.Username == "" || req.Password == "" {
+				_ = level.Error(logger).Log("username or password:", "is nil")
+				return nil, ErrorASD
+			}
+
+			user, err := repository.User().FindAndPwd(req.Username, encode.EncodePassword(req.Password, salt))
+			if err != nil {
+				_ = level.Error(logger).Log("User", "FindAndPwd", "err", err.Error())
+				return nil, ErrorASD
+			}
+
+			ctx = context.WithValue(ctx, UserIdContext, user.ID)
+
+			return next(ctx, request)
+		}
+	}
+}

@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/go-kit/kit/endpoint"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -19,7 +19,8 @@ import (
 var ErrInvalidArgument = errors.New("invalid argument")
 
 type endpoints struct {
-	PostEndpoint endpoint.Endpoint
+	PostEndpoint        endpoint.Endpoint
+	UploadImageEndpoint endpoint.Endpoint
 }
 
 func MakeHandler(svc Service, logger kitlog.Logger, repository repository.Repository, cf *config.Config) http.Handler {
@@ -30,19 +31,29 @@ func MakeHandler(svc Service, logger kitlog.Logger, repository repository.Reposi
 	}
 
 	eps := endpoints{
-		PostEndpoint: makePostEndpoint(svc),
+		PostEndpoint:        makePostEndpoint(svc),
+		UploadImageEndpoint: makeUploadImageEndpoint(svc),
 	}
 
 	ems := []endpoint.Middleware{
 		checkAuthMiddleware(logger, repository, cf.GetString("server", "app_key")),
 	}
 
+	ems2 := []endpoint.Middleware{
+		imageCheckAuthMiddleware(logger, repository, cf.GetString("server", "app_key")),
+	}
+
 	mw := map[string][]endpoint.Middleware{
-		"Post": ems,
+		"Post":   ems,
+		"Upload": ems2,
 	}
 
 	for _, m := range mw["Post"] {
 		eps.PostEndpoint = m(eps.PostEndpoint)
+	}
+
+	for _, m := range mw["Upload"] {
+		eps.UploadImageEndpoint = m(eps.UploadImageEndpoint)
 	}
 
 	post := kithttp.NewServer(
@@ -52,9 +63,61 @@ func MakeHandler(svc Service, logger kitlog.Logger, repository repository.Reposi
 		opts...,
 	)
 
+	uploadImage := kithttp.NewServer(
+		eps.UploadImageEndpoint,
+		decodeUploadImageRequest,
+		encodeJsonResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 	r.Handle("/api/post/metaweblog", post).Methods("POST")
+	r.Handle("/api/upload-image", uploadImage).Methods("POST")
 	return r
+}
+
+func decodeUploadImageRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	username := r.Header.Get("Username")
+	password := r.Header.Get("Password")
+
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := reader.ReadForm(32 << 10)
+	if err != nil {
+		return nil, err
+	}
+
+	if form.File == nil {
+		return nil, errors.New("文件不存在")
+	}
+
+	imageFiles := form.File["markdown-image"]
+
+	image := imageFile{}
+
+	for _, v := range imageFiles {
+		f, _ := v.Open()
+		buf, err := ioutil.ReadAll(f)
+
+		if err != nil {
+			return nil, err
+		}
+
+		image.Size = v.Size
+		image.Filename = v.Filename
+		image.Header = v.Header
+		image.Body = buf
+		break
+	}
+
+	return uploadImageRequest{
+		Username: username,
+		Password: password,
+		Image:    image,
+	}, nil
 }
 
 func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -63,8 +126,6 @@ func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(string(b))
 
 	var req postRequest
 
@@ -85,6 +146,16 @@ func decodePostRequest(_ context.Context, r *http.Request) (interface{}, error) 
 	return req, nil
 }
 
+func encodeJsonResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	if e, ok := response.(errorer); ok && e.error() != nil {
+		encodeJsonError(ctx, e.error(), w)
+		return nil
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(response)
+}
+
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if e, ok := response.(errorer); ok && e.error() != nil {
 		encodeXmlError(ctx, e.error(), w)
@@ -97,6 +168,20 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 
 type errorer interface {
 	error() error
+}
+
+func encodeJsonError(_ context.Context, err error, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	switch err {
+	case ErrorASD:
+		w.WriteHeader(http.StatusForbidden)
+	default:
+		w.WriteHeader(http.StatusOK)
+	}
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": false,
+		"error":   err.Error(),
+	})
 }
 
 func encodeXmlError(ctx context.Context, err error, w http.ResponseWriter) {

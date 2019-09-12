@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/pkg/errors"
+	"net/textproto"
 	"strconv"
 )
 
@@ -23,6 +24,38 @@ func (c PostMethod) String() string {
 }
 
 var NoPermission = errors.New("not permission!")
+
+type imageFile struct {
+	Header   textproto.MIMEHeader
+	Filename string
+	Size     int64
+	Body     []byte
+}
+
+type uploadImageRequest struct {
+	Username string    `json:"username"`
+	Password string    `json:"password"`
+	Image    imageFile `json:"data"`
+}
+
+type imageResponse struct {
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	Filename  string `json:"filename"`
+	Storename string `json:"storename"`
+	Size      int64  `json:"size"`
+	Path      string `json:"path"`
+	Hash      string `json:"hash"`
+	Timestamp int64  `json:"timestamp"`
+	Url       string `json:"url"`
+}
+
+func makeUploadImageEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(uploadImageRequest)
+		return s.UploadImage(ctx, req)
+	}
+}
 
 func makePostEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
