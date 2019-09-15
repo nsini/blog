@@ -45,7 +45,7 @@ func checkAuthMiddleware(logger log.Logger, repository repository.Repository, sa
 				return nil, ErrorASD
 			}
 
-			ctx = context.WithValue(ctx, UserIdContext, user.ID)
+			ctx = context.WithValue(ctx, UserIdContext, int64(user.ID))
 
 			return next(ctx, request)
 		}
