@@ -156,7 +156,7 @@ func postPaginator(count, pageSize, offset int) string {
 		next = offset
 	}
 	res = append(res, fmt.Sprintf(`<li><a href="/post?pageSize=10&offset=%d">Prev</a></li>`, prev))
-	for i := 1; i < (count / pageSize); i++ {
+	for i := 1; i <= (count / pageSize); i++ {
 		os := (i - 1) * 10
 		var active string
 		if offset == os {
