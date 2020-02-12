@@ -68,7 +68,7 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 	// 取列表 判断搜索、分类、Tag条件
 	// 取最多阅读
 
-	posts, count, err := c.repository.Post().FindBy(action, order, by, pageSize, offset)
+	posts, count, err := c.repository.Post().FindBy([]int{1, 2}, order, by, pageSize, offset)
 	if err != nil {
 		return
 	}

@@ -12,7 +12,7 @@ var (
 
 type PostRepository interface {
 	Find(id int64) (res *types.Post, err error)
-	FindBy(action int, order, by string, pageSize, offset int) ([]*types.Post, int64, error)
+	FindBy(action []int, order, by string, pageSize, offset int) ([]*types.Post, int64, error)
 	Popular() (posts []*types.Post, err error)
 	SetReadNum(p *types.Post) error
 	Create(p *types.Post) error
@@ -73,13 +73,13 @@ func (c *post) Find(id int64) (res *types.Post, err error) {
 	return &p, nil
 }
 
-func (c *post) FindBy(action int, order, by string, pageSize, offset int) ([]*types.Post, int64, error) {
+func (c *post) FindBy(action []int, order, by string, pageSize, offset int) ([]*types.Post, int64, error) {
 	posts := make([]*types.Post, 0)
 	var count int64
 	if err := c.db.Model(&posts).Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id,username")
 	}).Preload("Tags").
-		Where("action = ?", action).
+		Where("action in (?)", action).
 		Where("push_time IS NOT NULL").
 		Where("post_status = ?", PostStatusPublish).
 		Order(gorm.Expr(by + " " + order)).
