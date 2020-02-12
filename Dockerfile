@@ -10,7 +10,7 @@ RUN cd /go/src/${BUILDPATH} && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go install 
 FROM alpine:latest
 
 COPY --from=build-env /go/bin/blog /go/bin/blog
-COPY ./views /go/bin/
-COPY ./static /go/bin/
+COPY ./views /go/bin/views
+COPY ./static /go/bin/static
 WORKDIR /go/bin/
 CMD ["/go/bin/blog", "start", "-p", ":8080", "-c", "/etc/blog/app.cfg"]
