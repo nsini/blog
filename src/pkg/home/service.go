@@ -5,6 +5,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/nsini/blog/src/config"
+	"github.com/nsini/blog/src/pkg/post"
 	"github.com/nsini/blog/src/repository"
 	"strconv"
 )
@@ -76,12 +77,20 @@ func (c *service) Index(ctx context.Context) (rs map[string]interface{}, err err
 			"comment":    v.Reviews,
 			"image_url":  imgUrl,
 			"desc":       v.Description,
+			"tags":       v.Tags,
 			"id":         strconv.Itoa(int(v.ID)),
 		})
 	}
 
+	postSvc := post.NewService(c.logger, c.config, c.repository)
+	res, _ := postSvc.Popular(ctx)
+
+	total, _ := c.repository.Post().Count()
+
 	return map[string]interface{}{
-		"stars": starsData,
-		"list":  posts,
+		"stars":    starsData,
+		"list":     posts,
+		"populars": res,
+		"total":    total,
 	}, nil
 }

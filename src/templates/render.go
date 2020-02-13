@@ -76,7 +76,7 @@ func RenderHtml(ctx context.Context, w http.ResponseWriter, response map[string]
 	name := ctx.Value("method").(string)
 
 	buf := new(bytes.Buffer)
-	if err := Render(response, buf, "views/default/"+name); err != nil {
+	if err := Render(response, buf, "views/tonight/"+name); err != nil {
 		return err
 	}
 

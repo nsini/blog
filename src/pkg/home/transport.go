@@ -48,10 +48,7 @@ func encodeIndexResponse(ctx context.Context, w http.ResponseWriter, response in
 
 	resp := response.(indexResponse)
 
-	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"stars": resp.Data["stars"],
-		"list":  resp.Data["list"],
-	})
+	return templates.RenderHtml(ctx, w, resp.Data)
 }
 
 type errorer interface {

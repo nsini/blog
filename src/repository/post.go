@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	"github.com/nsini/blog/src/repository/types"
+	"time"
 )
 
 var (
@@ -19,6 +20,9 @@ type PostRepository interface {
 	Update(p *types.Post) error
 	Stars() (res []*types.Post, err error)
 	Index() (res []*types.Post, err error)
+	Prev(publishTime *time.Time) (res *types.Post, err error)
+	Next(publishTime *time.Time) (res *types.Post, err error)
+	Count() (total int64, err error)
 }
 
 type PostStatus string
@@ -32,6 +36,27 @@ type post struct {
 	db *gorm.DB
 }
 
+func (c *post) Count() (total int64, err error) {
+	err = c.db.Model(&types.Post{}).Where("post_status = ?", PostStatusPublish).Count(&total).Error
+	return
+}
+
+func (c *post) Prev(publishTime *time.Time) (res *types.Post, err error) {
+	var p types.Post
+	err = c.db.Where("push_time < ?", publishTime).
+		Where("post_status = ?", PostStatusPublish).
+		Order("push_time desc").Limit(1).First(&p).Error
+	return &p, err
+}
+
+func (c *post) Next(publishTime *time.Time) (res *types.Post, err error) {
+	var p types.Post
+	err = c.db.Where("push_time > ?", publishTime).
+		Where("post_status = ?", PostStatusPublish).
+		Order("push_time asc").Limit(1).First(&p).Error
+	return &p, err
+}
+
 func NewPostRepository(db *gorm.DB) PostRepository {
 	return &post{db: db}
 }
@@ -40,6 +65,7 @@ func (c *post) Index() (res []*types.Post, err error) {
 	err = c.db.Where("post_status = ?", PostStatusPublish).
 		Preload("Images").
 		Preload("User").
+		Preload("Tags").
 		Order(gorm.Expr("push_time DESC")).
 		Limit(10).Find(&res).Error
 
@@ -51,7 +77,7 @@ func (c *post) Stars() (res []*types.Post, err error) {
 		Where("post_status = ?", PostStatusPublish).
 		Preload("Images").
 		Order(gorm.Expr("push_time DESC")).
-		Limit(5).Find(&res).Error
+		Limit(7).Find(&res).Error
 	return
 }
 
@@ -91,7 +117,7 @@ func (c *post) FindBy(action []int, order, by string, pageSize, offset int) ([]*
 }
 
 func (c *post) Popular() (posts []*types.Post, err error) {
-	if err = c.db.Order("read_num DESC").Limit(5).Find(&posts).Error; err != nil {
+	if err = c.db.Order("read_num DESC").Limit(9).Find(&posts).Error; err != nil {
 		return
 	}
 	return

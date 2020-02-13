@@ -177,7 +177,9 @@ func start() {
 	mux.Handle("/", home.MakeHandler(homeSvc, httpLogger))
 
 	http.Handle("/metrics", promhttp.Handler())
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("./views/tonight/images/"))))
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./views/tonight/css/"))))
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./views/tonight/js/"))))
 	http.Handle("/", accessControl(mux, logger))
 
 	errs := make(chan error, 2)

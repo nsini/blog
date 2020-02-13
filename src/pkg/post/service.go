@@ -13,7 +13,7 @@ var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
 	Get(ctx context.Context, id int64) (rs map[string]interface{}, err error)
-	List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error)
+	List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, other map[string]interface{}, err error)
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
 }
 
@@ -50,6 +50,12 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 		headerImage = c.config.GetString("server", "image_domain") + "/" + image.ImagePath
 	}
 
+	// prev
+	prev, _ := c.repository.Post().Prev(detail.PushTime)
+	// next
+	next, _ := c.repository.Post().Next(detail.PushTime)
+
+	populars, _ := c.Popular(ctx)
 	return map[string]interface{}{
 		"content":      detail.Content,
 		"title":        detail.Title,
@@ -58,13 +64,20 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 		"author":       detail.User.Username,
 		"comment":      detail.Reviews,
 		"banner_image": headerImage,
+		"read_num":     strconv.Itoa(int(detail.ReadNum)),
+		"description":  detail.Description,
+		"tags":         detail.Tags,
+		"populars":     populars,
+		"prev":         prev,
+		"next":         next,
 	}, nil
 }
 
 /**
  * @Title 列表页
  */
-func (c *service) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error) {
+func (c *service) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{},
+	count int64, other map[string]interface{}, err error) {
 	// 取列表 判断搜索、分类、Tag条件
 	// 取最多阅读
 
@@ -106,6 +119,14 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 			"author":     val.User.Username,
 			"tags":       val.Tags,
 		})
+	}
+
+	tags, _ := c.repository.Tag().List(20)
+
+	populars, _ := c.Popular(ctx)
+	other = map[string]interface{}{
+		"tags":     tags,
+		"populars": populars,
 	}
 
 	return

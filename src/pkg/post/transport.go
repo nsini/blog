@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nsini/blog/src/repository"
 	"github.com/nsini/blog/src/templates"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -121,7 +122,7 @@ func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response i
 		return nil
 	}
 
-	ctx = context.WithValue(ctx, "method", "blog-single")
+	ctx = context.WithValue(ctx, "method", "info")
 
 	resp := response.(postResponse)
 
@@ -134,12 +135,17 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 		return nil
 	}
 
-	ctx = context.WithValue(ctx, "method", "blog-left-sidebar")
+	ctx = context.WithValue(ctx, "method", "list")
 
 	resp := response.(listResponse)
 
+	other := resp.Data["other"].(map[string]interface{})
+
 	return templates.RenderHtml(ctx, w, map[string]interface{}{
-		"list":      resp.Data,
+		"list":      resp.Data["post"],
+		"tags":      other["tags"],
+		"populars":  other["populars"],
+		"total":     strconv.Itoa(int(resp.Count)),
 		"paginator": postPaginator(int(resp.Count), resp.Paginator.PageSize, resp.Paginator.Offset),
 	})
 }
@@ -155,16 +161,18 @@ func postPaginator(count, pageSize, offset int) string {
 	if offset+pageSize > count {
 		next = offset
 	}
-	res = append(res, fmt.Sprintf(`<li><a href="/post?pageSize=10&offset=%d">Prev</a></li>`, prev))
-	for i := 1; i <= (count / pageSize); i++ {
+	res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">上一页</a>&nbsp;`, prev))
+
+	length := math.Ceil(float64(count) / float64(pageSize))
+	for i := 1; i <= int(length); i++ {
 		os := (i - 1) * 10
-		var active string
 		if offset == os {
-			active = `class="active"`
+			res = append(res, fmt.Sprintf(`<b>%d</b>`, i))
+			continue
 		}
-		res = append(res, fmt.Sprintf(`<li %s><a href="/post?pageSize=10&offset=%d">%d</a></li>`, active, os, i))
+		res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">%d</a>&nbsp;`, os, i))
 	}
-	res = append(res, fmt.Sprintf(`<li><a href="/post?pageSize=10&offset=%d">Next</a></li>`, next))
+	res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">下一页</a>&nbsp;`, next))
 	return strings.Join(res, "\n")
 }
 

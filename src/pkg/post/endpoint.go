@@ -34,10 +34,10 @@ type paginator struct {
 }
 
 type listResponse struct {
-	Data      []map[string]interface{} `json:"data,omitempty"`
-	Count     int64                    `json:"count,omitempty"`
-	Paginator paginator                `json:"paginator,omitempty"`
-	Err       error                    `json:"error,omitempty"`
+	Data      map[string]interface{} `json:"data,omitempty"`
+	Count     int64                  `json:"count,omitempty"`
+	Paginator paginator              `json:"paginator,omitempty"`
+	Err       error                  `json:"error,omitempty"`
 }
 
 func (r listResponse) error() error { return r.Err }
@@ -51,15 +51,22 @@ func makeGetEndpoint(s Service) endpoint.Endpoint {
 }
 
 func makeListEndpoint(s Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(listRequest)
-		rs, count, err := s.List(ctx, req.order, req.by, req.action, req.pageSize, req.offset)
-		pager := paginator{
-			By:       req.by,
-			Offset:   req.offset,
-			PageSize: req.pageSize,
-		}
-		return listResponse{rs, count, pager, err}, err
+		rs, count, other, err := s.List(ctx, req.order, req.by, req.action, req.pageSize, req.offset)
+		return listResponse{
+			Data: map[string]interface{}{
+				"post":  rs,
+				"other": other,
+			},
+			Count: count,
+			Paginator: paginator{
+				By:       req.by,
+				Offset:   req.offset,
+				PageSize: req.pageSize,
+			},
+			Err: err,
+		}, err
 	}
 }
 

@@ -21,10 +21,16 @@ const (
 
 type TagRepository interface {
 	FirstOrCreate(name string) (meta *types.Tag, err error)
+	List(limit int) (metas []*types.Tag, err error)
 }
 
 type tag struct {
 	db *gorm.DB
+}
+
+func (c *tag) List(limit int) (metas []*types.Tag, err error) {
+	err = c.db.Model(&types.Tag{}).Order("id desc").Limit(limit).Find(&metas).Error
+	return
 }
 
 func NewTagRepository(db *gorm.DB) TagRepository {

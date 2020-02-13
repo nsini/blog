@@ -27,7 +27,7 @@ func (s *loggingService) Get(ctx context.Context, id int64) (rs map[string]inter
 	return s.Service.Get(ctx, id)
 }
 
-func (s *loggingService) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, err error) {
+func (s *loggingService) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, other map[string]interface{}, err error) {
 	defer func(begin time.Time) {
 		_ = s.logger.Log(
 			"method", "List",
