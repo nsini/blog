@@ -42,6 +42,10 @@ type listResponse struct {
 
 func (r listResponse) error() error { return r.Err }
 
+type endpoints struct {
+	GetEndpoint endpoint.Endpoint
+}
+
 func makeGetEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(postRequest)

@@ -23,6 +23,7 @@ type PostRepository interface {
 	Prev(publishTime *time.Time) (res *types.Post, err error)
 	Next(publishTime *time.Time) (res *types.Post, err error)
 	Count() (total int64, err error)
+	FindOnce(id int64) (res *types.Post, err error)
 }
 
 type PostStatus string
@@ -94,6 +95,16 @@ func (c *post) Find(id int64) (res *types.Post, err error) {
 		Preload("Tags").
 		Preload("Images").
 		Find(&p, "id = ?", id).Error; err != nil {
+		return nil, PostNotFound
+	}
+	return &p, nil
+}
+
+func (c *post) FindOnce(id int64) (res *types.Post, err error) {
+	var p types.Post
+
+	if err = c.db.Model(&p).
+		First(&p, "id = ?", id).Error; err != nil {
 		return nil, PostNotFound
 	}
 	return &p, nil

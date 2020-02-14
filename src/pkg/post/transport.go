@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-kit/kit/endpoint"
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -18,14 +19,30 @@ import (
 
 var errBadRoute = errors.New("bad route")
 
-func MakeHandler(ps Service, logger kitlog.Logger) http.Handler {
+func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Repository) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 
+	eps := endpoints{
+		GetEndpoint: makeGetEndpoint(ps),
+	}
+
+	ems := []endpoint.Middleware{
+		PostDetailUpdateReadNum(logger, repository),
+	}
+
+	mw := map[string][]endpoint.Middleware{
+		"Get": ems,
+	}
+
+	for _, m := range mw["Get"] {
+		eps.GetEndpoint = m(eps.GetEndpoint)
+	}
+
 	detail := kithttp.NewServer(
-		makeGetEndpoint(ps),
+		eps.GetEndpoint,
 		decodeDetailRequest,
 		encodeDetailResponse,
 		opts...,
