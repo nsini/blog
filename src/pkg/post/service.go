@@ -15,12 +15,23 @@ type Service interface {
 	Get(ctx context.Context, id int64) (rs map[string]interface{}, err error)
 	List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, other map[string]interface{}, err error)
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
+	Awesome(ctx context.Context, id int64) (err error)
 }
 
 type service struct {
 	repository repository.Repository
 	logger     log.Logger
 	config     *config.Config
+}
+
+// 更新点赞
+func (c *service) Awesome(ctx context.Context, id int64) (err error) {
+	post, err := c.repository.Post().FindOnce(id)
+	if err != nil {
+		return
+	}
+	post.Awesome += 1
+	return c.repository.Post().Update(post)
 }
 
 /**
@@ -70,6 +81,8 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 		"populars":     populars,
 		"prev":         prev,
 		"next":         next,
+		"awesome":      detail.Awesome,
+		"id":           detail.ID,
 	}, nil
 }
 

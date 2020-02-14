@@ -29,7 +29,10 @@
                     {{content|markdown}}
                 </div>
 
-                <p><span class="diggit">很赞哦！ (74)</span></p>
+                <p><span class="diggit" id="awesome"
+                         attr-id="{{id|stringformat:"%0.f"}}">很赞哦！ (<span
+                                id="awesome-num">{{awesome|stringformat:"%0.f"}}</span>)</span>
+                </p>
                 <div class="nextinfo">
                     {% if prev && prev.id > 0 %}
                     <p>上一篇：<a href="/post/{{prev.id|stringformat:"%0.f"}}">{{prev.title}}</a></p>
@@ -57,12 +60,12 @@
             </ul>
         </div>-->
 
-        <div class="whitebg gbook">
+        <!--<div class="whitebg gbook">
             <h2 class="htitle">文章评论</h2>
             <ul>
 
             </ul>
-        </div>
+        </div>-->
     </div>
     <!--lbox end-->
     <div class="rbox">
@@ -94,7 +97,8 @@
             </section>
             <ul>
                 {% for popular in populars|slice:"1:" %}
-                <li><a href="/post/{{popular.id|stringformat:"%0.f"}}"><i><img src="{{popular.image_url}}?imageView2/1/w/80/h/80/q/75|imageslim"></i>
+                <li><a href="/post/{{popular.id|stringformat:"%0.f"}}"><i><img
+                                    src="{{popular.image_url}}?imageView2/1/w/80/h/80/q/75|imageslim"></i>
                         <p>{{popular.title}}!</p>
                     </a></li>
                 {% endfor %}
@@ -157,5 +161,15 @@
     }
 
     highlightCode();
+
+    $('#awesome').on('click', function () {
+        let that = $(this);
+        $.ajax({
+            type: "PUT",
+            url: "/post/" + that.attr("attr-id"),
+        }).done(function () {
+            $("#awesome-num").text(parseInt($("#awesome-num").text()) + 1);
+        });
+    })
 </script>
 {% endblock %}

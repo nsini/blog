@@ -168,8 +168,8 @@ func start() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/post", post.MakeHandler(ps, httpLogger))
-	mux.Handle("/post/", post.MakeHandler(ps, httpLogger))
+	mux.Handle("/post", post.MakeHandler(ps, httpLogger, store))
+	mux.Handle("/post/", post.MakeHandler(ps, httpLogger, store))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))
 	mux.Handle("/api/", api.MakeHandler(apiSvc, httpLogger, store, cf))
 	mux.Handle("/board", board.MakeHandler(boardSvc, httpLogger))

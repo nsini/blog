@@ -13,8 +13,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	encode2 "github.com/nsini/blog/src/encode"
 	"github.com/nsini/blog/src/repository"
-	"github.com/nsini/blog/src/util/encode"
 )
 
 type ASDContext string
@@ -39,7 +39,7 @@ func checkAuthMiddleware(logger log.Logger, repository repository.Repository, sa
 				return nil, ErrorASD
 			}
 
-			user, err := repository.User().FindAndPwd(username, encode.EncodePassword(password, salt))
+			user, err := repository.User().FindAndPwd(username, encode2.EncodePassword(password, salt))
 			if err != nil {
 				_ = level.Error(logger).Log("User", "FindAndPwd", "err", err.Error())
 				return nil, ErrorASD
@@ -63,7 +63,7 @@ func imageCheckAuthMiddleware(logger log.Logger, repository repository.Repositor
 
 			_ = level.Debug(logger).Log("username", req.Username, "password", req.Password)
 
-			user, err := repository.User().FindAndPwd(req.Username, encode.EncodePassword(req.Password, salt))
+			user, err := repository.User().FindAndPwd(req.Username, encode2.EncodePassword(req.Password, salt))
 			if err != nil {
 				_ = level.Error(logger).Log("User", "FindAndPwd", "err", err.Error())
 				return nil, ErrorASD

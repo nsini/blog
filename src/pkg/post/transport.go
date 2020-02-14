@@ -9,15 +9,20 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/nsini/blog/src/encode"
 	"github.com/nsini/blog/src/repository"
 	"github.com/nsini/blog/src/templates"
+	"golang.org/x/time/rate"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var errBadRoute = errors.New("bad route")
+
+const rateBucketNum = 2
 
 func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Repository) http.Handler {
 	opts := []kithttp.ServerOption{
@@ -25,21 +30,17 @@ func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Reposit
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 
-	eps := endpoints{
-		GetEndpoint: makeGetEndpoint(ps),
-	}
-
 	ems := []endpoint.Middleware{
-		PostDetailUpdateReadNum(logger, repository),
+		UpdatePostReadNum(logger, repository),
+		newTokenBucketLimitter(rate.NewLimiter(rate.Every(time.Second*1), rateBucketNum)),
 	}
 
 	mw := map[string][]endpoint.Middleware{
-		"Get": ems,
+		"Get":     ems[:1],
+		"Awesome": ems[1:],
 	}
 
-	for _, m := range mw["Get"] {
-		eps.GetEndpoint = m(eps.GetEndpoint)
-	}
+	eps := NewEndpoint(ps, mw)
 
 	detail := kithttp.NewServer(
 		eps.GetEndpoint,
@@ -49,24 +50,46 @@ func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Reposit
 	)
 
 	list := kithttp.NewServer(
-		makeListEndpoint(ps),
+		eps.ListEndpoint,
 		decodeListRequest,
 		encodeListResponse,
 		opts...,
 	)
 
 	popular := kithttp.NewServer(
-		makePopularEndpoint(ps),
+		eps.PopularEndpoint,
 		decodePopularRequest,
 		encodePopularResponse,
 		opts...,
 	)
 
 	r := mux.NewRouter()
-	r.Handle("/post", list).Methods("GET")
-	r.Handle("/post/popular", popular).Methods("GET")
-	r.Handle("/post/{id:[0-9]+}", detail).Methods("GET")
+	r.Handle("/post", list).Methods(http.MethodGet)
+	r.Handle("/post/popular", popular).Methods(http.MethodGet)
+	r.Handle("/post/{id:[0-9]+}", detail).Methods(http.MethodGet)
+	r.Handle("/post/{id:[0-9]+}",
+		kithttp.NewServer(
+			eps.AwesomeEndpoint,
+			decodeAwesomeRequest,
+			encode.EncodeJsonResponse,
+			opts...,
+		)).Methods(http.MethodPut)
 	return r
+}
+
+func decodeAwesomeRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, errBadRoute
+	}
+
+	postId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return postRequest{Id: postId}, nil
 }
 
 func decodePopularRequest(_ context.Context, r *http.Request) (interface{}, error) {

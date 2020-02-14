@@ -3,6 +3,7 @@ package post
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/nsini/blog/src/encode"
 )
 
 type popularRequest struct {
@@ -42,8 +43,37 @@ type listResponse struct {
 
 func (r listResponse) error() error { return r.Err }
 
-type endpoints struct {
-	GetEndpoint endpoint.Endpoint
+type Endpoints struct {
+	GetEndpoint     endpoint.Endpoint
+	ListEndpoint    endpoint.Endpoint
+	PopularEndpoint endpoint.Endpoint
+	AwesomeEndpoint endpoint.Endpoint
+}
+
+func NewEndpoint(s Service, mdw map[string][]endpoint.Middleware) Endpoints {
+	eps := Endpoints{
+		GetEndpoint:     makeGetEndpoint(s),
+		ListEndpoint:    makeListEndpoint(s),
+		PopularEndpoint: makePopularEndpoint(s),
+		AwesomeEndpoint: makeAwesomeEndpoint(s),
+	}
+
+	for _, m := range mdw["Get"] {
+		eps.GetEndpoint = m(eps.GetEndpoint)
+	}
+	for _, m := range mdw["Awesome"] {
+		eps.AwesomeEndpoint = m(eps.AwesomeEndpoint)
+	}
+
+	return eps
+}
+
+func makeAwesomeEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(postRequest)
+		err = s.Awesome(ctx, req.Id)
+		return encode.Response{Error: err}, err
+	}
 }
 
 func makeGetEndpoint(s Service) endpoint.Endpoint {
