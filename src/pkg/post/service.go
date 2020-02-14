@@ -6,16 +6,27 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/repository/types"
 	"strconv"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
 
 type Service interface {
+	// 详情页信息
 	Get(ctx context.Context, id int64) (rs map[string]interface{}, err error)
+
+	// 列表页
 	List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{}, count int64, other map[string]interface{}, err error)
+
+	// 受欢迎的
 	Popular(ctx context.Context) (rs []map[string]interface{}, err error)
+
+	// 更新点赞
 	Awesome(ctx context.Context, id int64) (err error)
+
+	// 搜索文章
+	Search(ctx context.Context, keyword string, tag string, categoryId int64) (posts []*types.Post, total int64, err error)
 }
 
 type service struct {
@@ -24,7 +35,11 @@ type service struct {
 	config     *config.Config
 }
 
-// 更新点赞
+func (c *service) Search(ctx context.Context, keyword string, tag string, categoryId int64) (posts []*types.Post, total int64, err error) {
+
+	return
+}
+
 func (c *service) Awesome(ctx context.Context, id int64) (err error) {
 	post, err := c.repository.Post().FindOnce(id)
 	if err != nil {
@@ -34,9 +49,6 @@ func (c *service) Awesome(ctx context.Context, id int64) (err error) {
 	return c.repository.Post().Update(post)
 }
 
-/**
- * @Title 详情页
- */
 func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{}, err error) {
 	detail, err := c.repository.Post().Find(id)
 	if err != nil {
@@ -86,9 +98,6 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	}, nil
 }
 
-/**
- * @Title 列表页
- */
 func (c *service) List(ctx context.Context, order, by string, action, pageSize, offset int) (rs []map[string]interface{},
 	count int64, other map[string]interface{}, err error) {
 	// 取列表 判断搜索、分类、Tag条件
@@ -145,9 +154,6 @@ func (c *service) List(ctx context.Context, order, by string, action, pageSize, 
 	return
 }
 
-/**
- * @Title 受欢迎的
- */
 func (c *service) Popular(ctx context.Context) (rs []map[string]interface{}, err error) {
 
 	posts, err := c.repository.Post().Popular()
