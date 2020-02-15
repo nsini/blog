@@ -42,7 +42,7 @@
                         <span>{{post.author}}</span><span>{{post.publish_at}}</span>
                         <span>
                             {% for tag in post.tags %}
-                            【<a href="#">{{tag.name}}</a>】
+                            <a href="/search?tag={{tag.name}}">{{tag.name}}</a>
                             {% endfor %}
                         </span>
                     </p>
@@ -104,10 +104,10 @@
         </div>-->
 
         <div class="whitebg cloud">
-            <h2 class="htitle">标签云</h2>
+            <h2 class="htitle">标签</h2>
             <ul>
                 {% for tag in tags %}
-                <a href="#">{{tag.name}}</a>
+                <a href="/search?tag={{tag.name}}">{{tag.name}}</a>
                 {% endfor %}
             </ul>
         </div>

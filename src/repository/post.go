@@ -24,6 +24,8 @@ type PostRepository interface {
 	Next(publishTime *time.Time) (res *types.Post, err error)
 	Count() (total int64, err error)
 	FindOnce(id int64) (res *types.Post, err error)
+	Search(keyword string, categoryId int64, offset, pageSize int) (res []*types.Post, count int64, err error)
+	FindByIds(ids []int64, categoryId int64, offset, pageSize int) (res []*types.Post, count int64, err error)
 }
 
 type PostStatus string
@@ -35,6 +37,30 @@ const (
 
 type post struct {
 	db *gorm.DB
+}
+
+func (c *post) FindByIds(ids []int64, categoryId int64, offset, pageSize int) (res []*types.Post, count int64, err error) {
+	err = c.db.Model(&types.Post{}).
+		Where("id in (?)", ids).
+		//Where("action in (?)", categoryId).
+		Where("push_time IS NOT NULL").
+		Where("post_status = ?", PostStatusPublish).
+		Order("push_time desc").
+		Count(&count).
+		Offset(offset).Limit(pageSize).Find(&res).Error
+	return
+}
+
+func (c *post) Search(keyword string, categoryId int64, offset, pageSize int) (res []*types.Post, count int64, err error) {
+	err = c.db.Model(&types.Post{}).
+		Where("title like ? OR content like ?", `%`+keyword+`%`, `%`+keyword+`%`).
+		//Where("action in (?)", categoryId).
+		Where("push_time IS NOT NULL").
+		Where("post_status = ?", PostStatusPublish).
+		Order("push_time desc").
+		Count(&count).
+		Offset(offset).Limit(pageSize).Find(&res).Error
+	return
 }
 
 func (c *post) Count() (total int64, err error) {

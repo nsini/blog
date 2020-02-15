@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/nsini/blog/src/config"
 	"github.com/nsini/blog/src/repository"
 	"github.com/nsini/blog/src/repository/types"
@@ -26,7 +27,7 @@ type Service interface {
 	Awesome(ctx context.Context, id int64) (err error)
 
 	// 搜索文章
-	Search(ctx context.Context, keyword string, tag string, categoryId int64) (posts []*types.Post, total int64, err error)
+	Search(ctx context.Context, keyword, tag string, categoryId int64, offset, pageSize int) (posts []*types.Post, total int64, err error)
 }
 
 type service struct {
@@ -35,7 +36,20 @@ type service struct {
 	config     *config.Config
 }
 
-func (c *service) Search(ctx context.Context, keyword string, tag string, categoryId int64) (posts []*types.Post, total int64, err error) {
+func (c *service) Search(ctx context.Context, keyword, tag string, categoryId int64, offset, pageSize int) (posts []*types.Post, total int64, err error) {
+	if keyword != "" {
+		return c.repository.Post().Search(keyword, categoryId, offset, pageSize)
+	}
+
+	if tag != "" {
+		tagInfo, err := c.repository.Tag().FindPostIdsByName(tag)
+		if err != nil {
+			_ = level.Warn(c.logger).Log("repository.Tag", "FindPostByName", "err", err.Error())
+			return nil, 0, nil
+		}
+
+		return c.repository.Post().FindByIds(tagInfo.PostIds, categoryId, offset, pageSize)
+	}
 
 	return
 }
@@ -58,14 +72,6 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	if detail == nil {
 		return nil, repository.PostNotFound
 	}
-
-	defer func() {
-		go func() {
-			if err = c.repository.Post().SetReadNum(detail); err != nil {
-				_ = c.logger.Log("post.SetReadNum", err.Error())
-			}
-		}()
-	}()
 
 	var headerImage string
 

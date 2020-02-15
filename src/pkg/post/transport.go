@@ -2,7 +2,6 @@ package post
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-kit/kit/endpoint"
@@ -11,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nsini/blog/src/encode"
 	"github.com/nsini/blog/src/repository"
+	"github.com/nsini/blog/src/repository/types"
 	"github.com/nsini/blog/src/templates"
 	"golang.org/x/time/rate"
 	"math"
@@ -22,7 +22,7 @@ import (
 
 var errBadRoute = errors.New("bad route")
 
-const rateBucketNum = 2
+const rateBucketNum = 6
 
 func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Repository) http.Handler {
 	opts := []kithttp.ServerOption{
@@ -38,43 +38,68 @@ func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Reposit
 	mw := map[string][]endpoint.Middleware{
 		"Get":     ems[:1],
 		"Awesome": ems[1:],
+		"Search":  ems[1:],
 	}
 
 	eps := NewEndpoint(ps, mw)
 
-	detail := kithttp.NewServer(
-		eps.GetEndpoint,
-		decodeDetailRequest,
-		encodeDetailResponse,
-		opts...,
-	)
-
-	list := kithttp.NewServer(
+	r := mux.NewRouter()
+	r.Handle("/post", kithttp.NewServer(
 		eps.ListEndpoint,
 		decodeListRequest,
 		encodeListResponse,
 		opts...,
-	)
-
-	popular := kithttp.NewServer(
+	)).Methods(http.MethodGet)
+	r.Handle("/post/popular", kithttp.NewServer(
 		eps.PopularEndpoint,
 		decodePopularRequest,
-		encodePopularResponse,
+		encode.EncodeJsonResponse,
 		opts...,
-	)
-
-	r := mux.NewRouter()
-	r.Handle("/post", list).Methods(http.MethodGet)
-	r.Handle("/post/popular", popular).Methods(http.MethodGet)
-	r.Handle("/post/{id:[0-9]+}", detail).Methods(http.MethodGet)
-	r.Handle("/post/{id:[0-9]+}",
-		kithttp.NewServer(
-			eps.AwesomeEndpoint,
-			decodeAwesomeRequest,
-			encode.EncodeJsonResponse,
-			opts...,
-		)).Methods(http.MethodPut)
+	)).Methods(http.MethodGet)
+	r.Handle("/post/{id:[0-9]+}", kithttp.NewServer(
+		eps.GetEndpoint,
+		decodeDetailRequest,
+		encodeDetailResponse,
+		opts...,
+	)).Methods(http.MethodGet)
+	r.Handle("/post/{id:[0-9]+}", kithttp.NewServer(
+		eps.AwesomeEndpoint,
+		decodeAwesomeRequest,
+		encode.EncodeJsonResponse,
+		opts...,
+	)).Methods(http.MethodPut)
+	r.Handle("/search", kithttp.NewServer(
+		eps.SearchEndpoint,
+		decodeSearchRequest,
+		encodeSearchResponse,
+		opts...,
+	)).Methods(http.MethodGet)
 	return r
+}
+
+func decodeSearchRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	keyword := r.URL.Query().Get("keyword")
+	tag := r.URL.Query().Get("tag")
+	category := r.URL.Query().Get("category")
+	offset := r.URL.Query().Get("offset")
+	size := r.URL.Query().Get("pageSize")
+
+	if size == "" {
+		size = "10"
+	}
+	if offset == "" {
+		offset = "0"
+	}
+	pageSize, _ := strconv.Atoi(size)
+	pageOffset, _ := strconv.Atoi(offset)
+
+	return searchRequest{
+		Keyword:  keyword,
+		Tag:      tag,
+		Category: category,
+		Offset:   pageOffset,
+		PageSize: pageSize,
+	}, nil
 }
 
 func decodeAwesomeRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -94,16 +119,6 @@ func decodeAwesomeRequest(_ context.Context, r *http.Request) (interface{}, erro
 
 func decodePopularRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return popularRequest{}, nil
-}
-
-func encodePopularResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	if e, ok := response.(errorer); ok && e.error() != nil {
-		encodeError(ctx, e.error(), w)
-		return nil
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
 }
 
 func decodeListRequest(ctx context.Context, r *http.Request) (interface{}, error) {
@@ -186,11 +201,47 @@ func encodeListResponse(ctx context.Context, w http.ResponseWriter, response int
 		"tags":      other["tags"],
 		"populars":  other["populars"],
 		"total":     strconv.Itoa(int(resp.Count)),
-		"paginator": postPaginator(int(resp.Count), resp.Paginator.PageSize, resp.Paginator.Offset),
+		"paginator": postPaginator("post", int(resp.Count), resp.Paginator.PageSize, resp.Paginator.Offset, ""),
 	})
 }
 
-func postPaginator(count, pageSize, offset int) string {
+func searchReplace(data, keyword string) string {
+	return strings.ReplaceAll(data, keyword, fmt.Sprintf(`<b color="red">%s<b>`, keyword))
+}
+
+func encodeSearchResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	if e, ok := response.(errorer); ok && e.error() != nil {
+		encodeError(ctx, e.error(), w)
+		return nil
+	}
+
+	ctx = context.WithValue(ctx, "method", "search")
+
+	resp := response.(listResponse)
+
+	var rs []map[string]interface{}
+	for _, val := range resp.Data["post"].([]*types.Post) {
+		rs = append(rs, map[string]interface{}{
+			"id":         strconv.FormatUint(uint64(val.ID), 10),
+			"title":      val.Title,
+			"desc":       val.Description,
+			"publish_at": val.PushTime.Format("2006/01/02 15:04:05"),
+			"comment":    val.Reviews,
+			"author":     val.User.Username,
+			"tags":       val.Tags,
+		})
+	}
+
+	return templates.RenderHtml(ctx, w, map[string]interface{}{
+		"list":    rs,
+		"keyword": resp.Data["keyword"],
+		"total":   strconv.Itoa(int(resp.Count)),
+		"paginator": postPaginator("search", int(resp.Count), resp.Paginator.PageSize, resp.Paginator.Offset,
+			fmt.Sprintf("&keyword=%s&tag=%s", resp.Data["keyword"], resp.Data["tag"])),
+	})
+}
+
+func postPaginator(path string, count, pageSize, offset int, other string) string {
 	var res []string
 	var prev, next int
 	prev = offset - pageSize
@@ -201,7 +252,7 @@ func postPaginator(count, pageSize, offset int) string {
 	if offset+pageSize > count {
 		next = offset
 	}
-	res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">上一页</a>&nbsp;`, prev))
+	res = append(res, fmt.Sprintf(`<a href="/%s?pageSize=10&offset=%d%s">上一页</a>&nbsp;`, path, prev, other))
 
 	length := math.Ceil(float64(count) / float64(pageSize))
 	for i := 1; i <= int(length); i++ {
@@ -210,9 +261,9 @@ func postPaginator(count, pageSize, offset int) string {
 			res = append(res, fmt.Sprintf(`<b>%d</b>`, i))
 			continue
 		}
-		res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">%d</a>&nbsp;`, os, i))
+		res = append(res, fmt.Sprintf(`<a href="/%s?pageSize=10&offset=%d%s">%d</a>&nbsp;`, path, os, other, i))
 	}
-	res = append(res, fmt.Sprintf(`<a href="/post?pageSize=10&offset=%d">下一页</a>&nbsp;`, next))
+	res = append(res, fmt.Sprintf(`<a href="/%s?pageSize=10&offset=%d%s">下一页</a>&nbsp;`, path, next, other))
 	return strings.Join(res, "\n")
 }
 

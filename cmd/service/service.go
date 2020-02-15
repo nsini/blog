@@ -168,6 +168,7 @@ func start() {
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/search", post.MakeHandler(ps, httpLogger, store))
 	mux.Handle("/post", post.MakeHandler(ps, httpLogger, store))
 	mux.Handle("/post/", post.MakeHandler(ps, httpLogger, store))
 	mux.Handle("/about", about.MakeHandler(aboutMe, httpLogger))

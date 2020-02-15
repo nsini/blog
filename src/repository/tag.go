@@ -22,10 +22,45 @@ const (
 type TagRepository interface {
 	FirstOrCreate(name string) (meta *types.Tag, err error)
 	List(limit int) (metas []*types.Tag, err error)
+	FindPostByName(name string) (meta types.Tag, err error)
+	FindPostIdsByName(name string) (meta types.Tag, err error)
+	Find(id int64) (meta types.Tag, err error)
 }
 
 type tag struct {
 	db *gorm.DB
+}
+
+func (c *tag) FindPostIdsByName(name string) (meta types.Tag, err error) {
+	// name需要加索引
+	var tag types.Tag
+	err = c.db.Model(&types.Tag{}).First(&tag, "name = ?", name).Error
+	if err != nil {
+		return
+	}
+
+	var ids []struct {
+		PostId int64
+	}
+
+	err = c.db.Table("post_tags").Select("post_id").Where("tag_id = ?", tag.Id).Find(&ids).Error
+
+	for _, v := range ids {
+		meta.PostIds = append(meta.PostIds, v.PostId)
+	}
+
+	return
+}
+func (c *tag) FindPostByName(name string) (meta types.Tag, err error) {
+	// name需要加索引
+	err = c.db.Model(&types.Tag{}).Preload("Posts").
+		First(&meta, "name = ?", name).Error
+	return
+}
+
+func (c *tag) Find(id int64) (meta types.Tag, err error) {
+	err = c.db.First(&meta, "id = ?", id).Error
+	return
 }
 
 func (c *tag) List(limit int) (metas []*types.Tag, err error) {
