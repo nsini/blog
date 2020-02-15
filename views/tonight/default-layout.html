@@ -4,7 +4,11 @@
     <meta charset="utf-8">
     <title>{{title}} LatteCake</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    {% if title %}
+    <meta name="description" content="{{title}}" />
+    {% else %}
     <meta name="description" content="LatteCake个人博客,拿铁味的蛋糕,是一名码农,擅长各种技术.{{title}}">
+    {% endif %}
     <meta name="keywords" content="博客,技术,个人博客,个人技术博客,Golang,Linux,ReactJS,Docker,Kubernetes,k8s,拿铁蛋糕,拿铁味的摩卡,lattecake,{{title}}">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

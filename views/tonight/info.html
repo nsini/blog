@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdn.bootcss.com/gitalk/1.5.0/gitalk.min.css"/>
 <link rel="stylesheet" href="/css/share.min.css"/>
 <link rel="stylesheet" href="/css/markdown.css"/>
+<meta name="site" content="https://lattecake.com/post/{{id|stringformat:"%0.f"}}" />
 {% endblock %}
 
 {% block body %}
@@ -15,7 +16,8 @@
             <h2 class="htitle"><span class="con_nav"><a href="/">Home</a> / <a href="/post">Posts</a></span>Post
             </h2>
             <h1 class="con_tilte">{{title}}</h1>
-            <p class="bloginfo"><i class="avatar"><img
+            <p class="bloginfo">
+                <i class="avatar"><img
                             src="/images/avatar.jpg"></i><span>{{author}}</span><span>{{publish_at}}</span>
                 <span>
                     {% for tag in tags %}
@@ -35,15 +37,16 @@
                     <span class="diggit" id="awesome" style="cursor: pointer;"
                           attr-id="{{id|stringformat:"%0.f"}}">很赞哦！ (<span
                                 id="awesome-num">{{awesome|stringformat:"%0.f"}}</span>)</span>
-                <div class="social-share" data-initialized="true">
-                    <a href="#" class="social-share-icon icon-weibo"></a>
-                    <a href="#" class="social-share-icon icon-qq"></a>
-                    <a href="#" class="social-share-icon icon-qzone"></a>
-                    <a href="#" class="social-share-icon icon-facebook"></a>
-                    <a href="#" class="social-share-icon icon-twitter"></a>
-                    <a href="#" class="social-share-icon icon-douban"></a>
-                    <a href="#" class="social-share-icon icon-linkedin"></a>
-                </div>
+                    <div class="social-share" data-initialized="true">
+                        <a href="#" class="social-share-icon icon-weibo"></a>
+                        <a href="#" class="social-share-icon icon-qq"></a>
+                        <a href="#" class="social-share-icon icon-wechat"></a>
+                        <a href="#" class="social-share-icon icon-qzone"></a>
+                        <a href="#" class="social-share-icon icon-facebook"></a>
+                        <a href="#" class="social-share-icon icon-twitter"></a>
+                        <a href="#" class="social-share-icon icon-douban"></a>
+                        <a href="#" class="social-share-icon icon-linkedin"></a>
+                    </div>
                 </p>
                 <div class="nextinfo">
                     {% if prev && prev.id > 0 %}
@@ -195,5 +198,18 @@
     })
 
     gitalk.render('gitalk-container');
+
+    let config = {
+        title               : "{{title}}",
+        description         : "{{description}}",
+        url                 : window.location.href,
+        origin              : '@ysz1121',
+        image               : '{{banner_image}}?imageView2/1/w/1280/h/720/q/75|imageslim',
+        wechatQrcodeTitle   : "微信扫一扫：分享", // 微信二维码提示文字
+        wechatQrcodeHelper  : '<p>微信里点“发现”，扫一下</p><p>二维码便可将本文分享至朋友圈。</p>',
+    };
+
+    $(".social-share").share(config);
+
 </script>
 {% endblock %}
