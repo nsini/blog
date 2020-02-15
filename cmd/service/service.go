@@ -179,6 +179,7 @@ func start() {
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("./views/tonight/images/"))))
+	http.Handle("/fonts/", http.StripPrefix("/fonts/", http.FileServer(http.Dir("./views/tonight/fonts/"))))
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./views/tonight/css/"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./views/tonight/js/"))))
 	http.Handle("/", accessControl(mux, logger))

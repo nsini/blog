@@ -2,7 +2,8 @@
 
 {% block stylesheet %}
 <link href="https://cdn.bootcss.com/highlight.js/9.15.10/styles/default.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdn.bootcss.com/gitalk/1.5.0/gitalk.min.css" />
+<link rel="stylesheet" href="https://cdn.bootcss.com/gitalk/1.5.0/gitalk.min.css"/>
+<link rel="stylesheet" href="/css/share.min.css"/>
 <link rel="stylesheet" href="/css/markdown.css"/>
 {% endblock %}
 
@@ -30,9 +31,19 @@
                     {{content|markdown}}
                 </div>
 
-                <p><span class="diggit" id="awesome" style="cursor: pointer;"
-                         attr-id="{{id|stringformat:"%0.f"}}">很赞哦！ (<span
+                <p>
+                    <span class="diggit" id="awesome" style="cursor: pointer;"
+                          attr-id="{{id|stringformat:"%0.f"}}">很赞哦！ (<span
                                 id="awesome-num">{{awesome|stringformat:"%0.f"}}</span>)</span>
+                <div class="social-share" data-initialized="true">
+                    <a href="#" class="social-share-icon icon-weibo"></a>
+                    <a href="#" class="social-share-icon icon-qq"></a>
+                    <a href="#" class="social-share-icon icon-qzone"></a>
+                    <a href="#" class="social-share-icon icon-facebook"></a>
+                    <a href="#" class="social-share-icon icon-twitter"></a>
+                    <a href="#" class="social-share-icon icon-douban"></a>
+                    <a href="#" class="social-share-icon icon-linkedin"></a>
+                </div>
                 </p>
                 <div class="nextinfo">
                     {% if prev && prev.id > 0 %}
@@ -152,6 +163,7 @@
 {% block script %}
 <script src="https://cdn.bootcss.com/highlight.js/9.15.10/highlight.min.js"></script>
 <script src="https://cdn.bootcss.com/gitalk/1.5.0/gitalk.min.js"></script>
+<script src="/js/social-share.min.js"></script>
 <script>
     function highlightCode() {
         var pres = document.querySelectorAll(".markdown-body pre>code");

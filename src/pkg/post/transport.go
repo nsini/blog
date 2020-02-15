@@ -27,7 +27,7 @@ const rateBucketNum = 6
 func MakeHandler(ps Service, logger kitlog.Logger, repository repository.Repository) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorLogger(logger),
-		kithttp.ServerErrorEncoder(encodeError),
+		kithttp.ServerErrorEncoder(encode.EncodeError),
 	}
 
 	ems := []endpoint.Middleware{
@@ -172,8 +172,8 @@ func decodeDetailRequest(_ context.Context, r *http.Request) (interface{}, error
 }
 
 func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	if e, ok := response.(errorer); ok && e.error() != nil {
-		encodeError(ctx, e.error(), w)
+	if e, ok := response.(encode.Errorer); ok && e.Error() != nil {
+		encode.EncodeError(ctx, e.Error(), w)
 		return nil
 	}
 
@@ -185,8 +185,8 @@ func encodeDetailResponse(ctx context.Context, w http.ResponseWriter, response i
 }
 
 func encodeListResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	if e, ok := response.(errorer); ok && e.error() != nil {
-		encodeError(ctx, e.error(), w)
+	if e, ok := response.(encode.Errorer); ok && e.Error() != nil {
+		encode.EncodeError(ctx, e.Error(), w)
 		return nil
 	}
 
@@ -210,8 +210,8 @@ func searchReplace(data, keyword string) string {
 }
 
 func encodeSearchResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
-	if e, ok := response.(errorer); ok && e.error() != nil {
-		encodeError(ctx, e.error(), w)
+	if e, ok := response.(encode.Errorer); ok && e.Error() != nil {
+		encode.EncodeError(ctx, e.Error(), w)
 		return nil
 	}
 
@@ -265,25 +265,4 @@ func postPaginator(path string, count, pageSize, offset int, other string) strin
 	}
 	res = append(res, fmt.Sprintf(`<a href="/%s?pageSize=10&offset=%d%s">下一页</a>&nbsp;`, path, next, other))
 	return strings.Join(res, "\n")
-}
-
-type errorer interface {
-	error() error
-}
-
-func encodeError(ctx context.Context, err error, w http.ResponseWriter) {
-	// w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	switch err {
-	case repository.PostNotFound:
-		w.WriteHeader(http.StatusNotFound)
-		ctx = context.WithValue(ctx, "method", "404")
-		_ = templates.RenderHtml(ctx, w, map[string]interface{}{})
-		return
-	case ErrInvalidArgument:
-		w.WriteHeader(http.StatusBadRequest)
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	_, _ = w.Write([]byte(err.Error()))
 }
