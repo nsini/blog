@@ -80,9 +80,9 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 	}
 
 	// prev
-	prev, _ := c.repository.Post().Prev(detail.PushTime)
+	prev, _ := c.repository.Post().Prev(detail.PushTime, []int64{int64(detail.Action)})
 	// next
-	next, _ := c.repository.Post().Next(detail.PushTime)
+	next, _ := c.repository.Post().Next(detail.PushTime, []int64{int64(detail.Action)})
 
 	populars, _ := c.Popular(ctx)
 	return map[string]interface{}{

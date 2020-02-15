@@ -20,8 +20,8 @@ type PostRepository interface {
 	Update(p *types.Post) error
 	Stars() (res []*types.Post, err error)
 	Index() (res []*types.Post, err error)
-	Prev(publishTime *time.Time) (res *types.Post, err error)
-	Next(publishTime *time.Time) (res *types.Post, err error)
+	Prev(publishTime *time.Time, action []int64) (res *types.Post, err error)
+	Next(publishTime *time.Time, action []int64) (res *types.Post, err error)
 	Count() (total int64, err error)
 	FindOnce(id int64) (res *types.Post, err error)
 	Search(keyword string, categoryId int64, offset, pageSize int) (res []*types.Post, count int64, err error)
@@ -68,17 +68,19 @@ func (c *post) Count() (total int64, err error) {
 	return
 }
 
-func (c *post) Prev(publishTime *time.Time) (res *types.Post, err error) {
+func (c *post) Prev(publishTime *time.Time, action []int64) (res *types.Post, err error) {
 	var p types.Post
 	err = c.db.Where("push_time < ?", publishTime).
+		Where("action in (?)", action).
 		Where("post_status = ?", PostStatusPublish).
 		Order("push_time desc").Limit(1).First(&p).Error
 	return &p, err
 }
 
-func (c *post) Next(publishTime *time.Time) (res *types.Post, err error) {
+func (c *post) Next(publishTime *time.Time, action []int64) (res *types.Post, err error) {
 	var p types.Post
 	err = c.db.Where("push_time > ?", publishTime).
+		Where("action in (?)", action).
 		Where("post_status = ?", PostStatusPublish).
 		Order("push_time asc").Limit(1).First(&p).Error
 	return &p, err
