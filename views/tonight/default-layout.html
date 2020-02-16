@@ -10,7 +10,8 @@
     {% block metadescription %}
     <meta name="description" content="LatteCake个人博客,拿铁味的蛋糕,是一名码农,擅长各种技术.{{title}}">
     {% endblock %}
-    <meta name="keywords" content="博客,技术,个人博客,个人技术博客,Golang,Linux,ReactJS,Docker,Kubernetes,k8s,拿铁蛋糕,拿铁味的摩卡,lattecake,{{title}}">
+    <meta name="keywords"
+          content="博客,技术,个人博客,个人技术博客,Golang,Linux,ReactJS,Docker,Kubernetes,k8s,拿铁蛋糕,拿铁味的摩卡,lattecake,{{title}}">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon-precomposed" href="https://lattecake.com/images/apple-touch-icon.png">
@@ -57,7 +58,9 @@
 <div class="searchbox">
     <div class="search">
         <form action="/search" method="get" name="searchform" id="searchform">
-            <input name="keyword" id="keyboard" class="input_text" value="请输入关键字词" style="color: rgb(153, 153, 153);" onfocus="if(value=='请输入关键字词'){this.style.color='#000';value=''}" onblur="if(value==''){this.style.color='#999';value='请输入关键字词'}" type="text">
+            <input name="keyword" id="keyboard" class="input_text" value="请输入关键字词" style="color: rgb(153, 153, 153);"
+                   onfocus="if(value=='请输入关键字词'){this.style.color='#000';value=''}"
+                   onblur="if(value==''){this.style.color='#999';value='请输入关键字词'}" type="text">
             <input name="tag" value="" type="hidden">
             <input name="category" value="0" type="hidden">
             <input class="input_submit" value="搜索" type="submit">
@@ -75,7 +78,9 @@
     <div class="box">
         <div class="wxbox">
             <ul>
-                <li><img src="https://lattecake.oss-cn-beijing.aliyuncs.com/static%2Fimages%2Fweixin%2Fqrcode_for_gh_354bc8e8b814_1280.jpg"><span>微信公众号</span></li>
+                <li>
+                    <img src="https://lattecake.oss-cn-beijing.aliyuncs.com/static%2Fimages%2Fweixin%2Fqrcode_for_gh_354bc8e8b814_1280.jpg"><span>微信公众号</span>
+                </li>
             </ul>
         </div>
         <div class="endnav">
@@ -83,21 +88,22 @@
             <p>多赚点钱，赚的钱多好，很多事自然就变了。</p>
             <p>How does the world look through your eyes?</p>
             <p>人生最要紧的就是要保持微笑。生命如此美妙，有太多的事，都值得微笑以对...</p>
-            <p>Copyright © <a href="https://www.lattecake.com">www.lattecake.com</a> All Rights Reserved. 备案号：<a href="http://www.miitbeian.gov.cn/" target="_blank">京ICP备19030925号</a></p>
+            <p>Copyright © <a href="https://www.lattecake.com">www.lattecake.com</a> All Rights Reserved. 备案号：<a
+                        href="http://www.miitbeian.gov.cn/" target="_blank">京ICP备19030925号</a></p>
         </div>
     </div>
     <a href="#">
         <div class="top"></div>
-    </a> </footer>
+    </a></footer>
 
-<script src="https://cdn.bootcss.com/jquery/1.8.3/jquery.min.js" type="application/javascript" ></script>
+<script src="/js/jquery-1.8.3.min.js" type="application/javascript"></script>
 <script src="/js/comm.js"></script>
 
 {% block script %}
 {% endblock %}
 <script>
     var _hmt = _hmt || [];
-    (function() {
+    (function () {
         var hm = document.createElement("script");
         hm.src = "https://hm.baidu.com/hm.js?325ecd282d3804cd811c4072e0b3ed2a";
         var s = document.getElementsByTagName("script")[0];
