@@ -9,6 +9,7 @@ import (
 	"github.com/nsini/blog/src/repository"
 	"github.com/nsini/blog/src/repository/types"
 	"strconv"
+	"strings"
 )
 
 var ErrInvalidArgument = errors.New("invalid argument")
@@ -94,7 +95,7 @@ func (c *service) Get(ctx context.Context, id int64) (rs map[string]interface{},
 		"comment":      detail.Reviews,
 		"banner_image": headerImage,
 		"read_num":     strconv.Itoa(int(detail.ReadNum)),
-		"description":  detail.Description,
+		"description":  strings.Replace(detail.Description, "\n", "", -1),
 		"tags":         detail.Tags,
 		"populars":     populars,
 		"prev":         prev,
