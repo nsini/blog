@@ -8,6 +8,14 @@
 <meta name="site" content="https://lattecake.com/post/{{id|stringformat:"%0.f"}}" />
 {% endblock %}
 
+{% block headtitle %}
+<title>{{title}}{% for tag in tags %}|{{tag.name}}{% endfor %} - LatteCake</title>
+{% endblock %}
+
+{% block metadescription %}
+<meta name="description" content="{{description}}{% for tag in tags %}|{{tag.name}}{% endfor %}">
+{% endblock %}
+
 {% block body %}
 <article>
     <!--lbox begin-->
@@ -200,7 +208,7 @@
     gitalk.render('gitalk-container');
 
     let config = {
-        title               : "{{title}}",
+        title               : "{{title}}{% for tag in tags %}|{{tag.name}}{% endfor %}",
         description         : '{{description}}',
         url                 : window.location.href,
         origin              : '@ysz1121',
